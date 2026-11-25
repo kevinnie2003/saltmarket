@@ -27,7 +27,8 @@ Open `dist/saltmarket.html` in a browser. It is one self-contained file with no 
 - When a merchant puts a deal on the table, the card shows it from your side and how it changes your worth by your own books. Accept it, decline it, or make your own counter.
 - You get six talks a day. **End the day** lets the merchants trade among themselves at dusk, and the next morning brings an event (a cargo ship, a storm, a guild order, a fair, a bad harvest) and new rumours.
 - A promise you made shows in **Promises** with a **keep it** box. Untick it and you won't deliver on the day.
-- You score your profit over what your stall was worth on the first morning: coin, plus the contract reward if it is filled, plus leftover goods at the closing price.
+- Each morning starts with what happened since yesterday: dusk trades, kept and broken promises. Your contract card shows which merchants on the quay hold each good you still need.
+- You score your profit over what your stall was worth on the first morning: coin, plus the contract reward if it is filled, plus leftover goods at the closing price. The final screen lists your deals, each valued at the closing prices.
 
 **Watch the merchants trade alone** plays a full market with four AI merchants and shows the standings.
 

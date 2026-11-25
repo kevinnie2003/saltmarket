@@ -106,6 +106,7 @@ describe('web client', () => {
     expect($('result').classList.contains('hidden')).toBe(false);
     expect(document.querySelectorAll('.standings tbody tr')).toHaveLength(4);
     expect($('result').textContent).toMatch(/You finished/);
+    expect($('result').textContent).toMatch(/no deals this market/);
     $('sameseed').click();
     expect(web.getUI().state!.day).toBe(1);
   });
@@ -194,5 +195,24 @@ describe('morning view', () => {
     let tries = 0;
     while (!$('recap').textContent && tries++ < 6) $('endday').click();
     expect($('recap').textContent).toMatch(/Since yesterday/);
+  });
+
+  it('values your own deals at closing prices', async () => {
+    const web = await boot();
+    $('start').click();
+    const st = web.getUI().state!;
+    const rival = st.merchants.find((m) => m.id !== 'you')!;
+    st.prices.salt = 5;
+    st.trades.push({ day: 2, offer: { from: rival.id, to: 'you', give: { salt: 4 }, get: { coin: 12 } } });
+    st.trades.push({ day: 3, offer: { from: 'you', to: rival.id, give: { coin: 30 }, get: { salt: 2 } } });
+    const html = web.ledgerHtml(st);
+    const box = document.createElement('div');
+    box.innerHTML = html;
+    const rows = [...box.querySelectorAll('.ledger tbody tr')];
+    expect(rows).toHaveLength(2);
+    expect(rows[0].textContent).toContain('+8');
+    expect(rows[0].classList.contains('best')).toBe(true);
+    expect(rows[1].textContent).toContain('−20');
+    expect(rows[1].textContent).toContain(rival.name);
   });
 });

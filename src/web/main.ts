@@ -1,6 +1,6 @@
 // Browser client. The whole game lives in the page; a local server is only
 // used when the player picks a model to play the merchants.
-import { HUMAN, describeBundle, fmtCoin, isEmpty, merchant, offerProblems, scoreOf, signed, standings } from '../engine/game.js';
+import { HUMAN, describeBundle, flip, fmtCoin, isEmpty, marketValue, merchant, offerProblems, scoreOf, signed, standings } from '../engine/game.js';
 import { GOOD_INFO } from '../engine/market.js';
 import { GOODS, type GameState, type Good, type LogEntry, type Merchant, type Offer } from '../engine/types.js';
 import { endDay, newGame, playOut, rivals } from '../agents/session.js';
@@ -395,10 +395,37 @@ export function showResult(): void {
   const head = you < 0 ? 'The merchants traded on their own.' : you === 0 ? 'You finished first on the quay.' : `You finished ${['first', 'second', 'third', 'fourth', 'fifth'][you]}.`;
   const broken = s.promises.filter((p) => p.status === 'broken');
   const lies = s.rumors.filter((r) => !r.truth && s.merchants.some((m) => m.id === HUMAN && m.heard.includes(r.id)));
+  const ledger = you < 0 ? '' : ledgerHtml(s);
   el.innerHTML = `<div class="card"><h2>${head}</h2>
     <table class="standings"><thead><tr><th></th><th>Merchant</th><th class="num">Profit</th><th>Contract</th></tr></thead><tbody>${rows}</tbody></table>
     <p class="muted">${s.trades.length} trades, ${broken.length} broken promise${broken.length === 1 ? '' : 's'}${you >= 0 ? `, ${lies.length} false rumour${lies.length === 1 ? '' : 's'} reached you` : ''}.</p>
+    ${ledger}
     <div class="row"><button id="again" class="primary">Play again</button><button id="sameseed">Same market again</button></div></div>`;
+}
+
+/** Your own deals, each valued at the closing prices from your side. */
+export function ledgerHtml(s: GameState): string {
+  const mine = s.trades
+    .filter((t) => t.offer.from === HUMAN || t.offer.to === HUMAN)
+    .map((t) => {
+      const o = t.offer.from === HUMAN ? t.offer : flip(t.offer);
+      const value =
+        marketValue(s, o.get) + marketValue(s, o.later?.get) - marketValue(s, o.give) - marketValue(s, o.later?.give);
+      const parts = [`gave ${describeBundle(o.give)}`, `got ${describeBundle(o.get)}`];
+      if (o.later && !isEmpty(o.later.give)) parts.push(`owed ${describeBundle(o.later.give)} on day ${o.later.due}`);
+      if (o.later && !isEmpty(o.later.get)) parts.push(`owed ${describeBundle(o.later.get)} on day ${o.later.due}`);
+      return { day: t.day, who: merchant(s, o.to).name, what: parts.filter((x) => !x.endsWith('nothing')).join('; '), value };
+    });
+  if (!mine.length) return '<p class="muted">You made no deals this market.</p>';
+  const best = mine.reduce((a, b) => (b.value > a.value ? b : a));
+  const rows = mine
+    .map(
+      (d) =>
+        `<tr class="${d === best && d.value > 0 ? 'best' : ''}"><td>${d.day}</td><td>${esc(d.who)}</td><td>${esc(d.what)}</td><td class="num ${d.value < 0 ? 'loss' : ''}">${signed(Math.round(d.value * 10) / 10)}</td></tr>`,
+    )
+    .join('');
+  return `<h3>Your deals</h3><table class="ledger"><thead><tr><th>Day</th><th>With</th><th>Deal</th><th class="num">At close</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="muted">Valued at the closing prices. A deal can lose on paper and still be worth it if it filled your contract.</p>`;
 }
 
 // ---------- saving ----------

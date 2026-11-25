@@ -142,3 +142,9 @@ button:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-
   .theirs { justify-content: flex-start; max-width: none; }
   .top { padding: 10px 14px; }
 }
+
+.ledger { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 0.4rem 0; }
+.ledger td, .ledger th { padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.ledger .num { text-align: right; white-space: nowrap; }
+.ledger .loss { color: var(--bad); }
+.ledger tr.best td { background: rgba(46, 107, 138, 0.08); }
