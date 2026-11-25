@@ -289,7 +289,7 @@ const ZH: Strings = {
   stampOpen: '未齐',
   promisesHead: '约定',
   promisesNone: '没有。一笔买卖可以约定以后某天再交货。',
-  youOwe: (who, what) => `你欠${who}${what}`,
+  youOwe: (who, what) => `你欠${who} ${what}`,
   owesYou: (who, what) => `${who}欠你${what}`,
   promiseDue: (d) => `第${d}天`,
   promiseStatus: { open: '未到期', kept: '已守约', broken: '已违约' },
