@@ -44,6 +44,28 @@ describe('reading what the player says', () => {
     expect(parseTalk(g, 'morning!', 'm1').intent.kind).toBe('hello');
     expect(parseTalk(g, 'the gulls are loud', 'm1').intent.kind).toBe('unknown');
   });
+  it('reads a new coin figure as a counter to the deal on the table', () => {
+    const g = game();
+    g.pending.m1 = { from: 'm1', to: HUMAN, give: { wool: 2 }, get: { coin: 12 } };
+    expect(parseTalk(g, 'how about 9', 'm1').intent).toEqual({ kind: 'offer', give: { coin: 9 }, get: { wool: 2 }, later: undefined });
+    expect(parseTalk(g, 'ok 10 then', 'm1').intent).toMatchObject({ kind: 'offer', give: { coin: 10 } });
+    delete g.pending.m1;
+    expect(parseTalk(g, 'how about 9', 'm1').intent.kind).toBe('unknown');
+  });
+
+  it('reads everyday ways of asking for goods', () => {
+    const g = game();
+    expect(parseTalk(g, 'do you have any salt?', 'm1').intent).toMatchObject({ kind: 'price', good: 'salt' });
+    expect(parseTalk(g, '2 iron please', 'm1').intent).toMatchObject({ kind: 'price', good: 'iron', qty: 2 });
+    expect(parseTalk(g, 'I need iron. What do you want for 2 bars?', 'm1').intent).toMatchObject({ kind: 'price', good: 'iron', qty: 2 });
+    expect(parseTalk(g, 'too expensive', 'm1').intent.kind).toBe('reject');
+    expect(parseTalk(g, "I'll pay 10 now and 10 on day 3 for 2 iron", 'm1').intent).toMatchObject({
+      kind: 'offer',
+      give: { coin: 10 },
+      get: { iron: 2 },
+      later: { give: { coin: 10 }, due: 3 },
+    });
+  });
 });
 
 describe('merchants answering', () => {

@@ -71,7 +71,7 @@ export function readBundle(text: string, bareNumberIs: 'coin' | null = 'coin'): 
   let pending: number | null = null;
   let found = false;
   for (let i = 0; i < words.length; i++) {
-    const w = words[i].replace(/[^a-z0-9.]/g, '');
+    const w = words[i].replace(/[^a-z0-9.]/g, '').replace(/\.+$/, '');
     if (!w) continue;
     if (/^\d+(\.\d+)?$/.test(w)) {
       pending = Number(w);
@@ -123,8 +123,10 @@ function readLater(state: GameState, text: string): { rest: string; later?: { gi
   const when = String.raw`(?:on\s+day\s+(\d+)|tomorrow|in\s+(\w+)\s+days?|(?:at|by)\s+(?:the\s+)?(?:close|end))`;
   const mine = new RegExp(String.raw`(?:,|\band\b|\bthen\b)?\s*(?:i'?ll|i\s+will|i\s+can|i'?d)\s+(?:pay|give|deliver|bring|send)\s+(?:you\s+)?(?:the\s+rest,?\s*)?(.+?)\s+${when}`);
   const theirs = new RegExp(String.raw`(?:,|\band\b|\bthen\b)?\s*(?:you\s+(?:can\s+|could\s+)?(?:pay|give|deliver|bring|send)(?:\s+me)?)\s+(.+?)\s+${when}`);
+  const rest = new RegExp(String.raw`\b(?:and|plus|then)\s+(?:the\s+rest\s*,?\s*)?((?:\d+|\w+)\s*(?:coin|coins|salt|amber|dye|wool|spice|iron)?)\s+${when}`);
   for (const [re, side] of [
     [theirs, 'get'],
+    [rest, 'give'],
     [mine, 'give'],
   ] as const) {
     const m = text.match(re);
@@ -152,12 +154,12 @@ export function parseTalk(state: GameState, raw: string, to?: string): Parsed {
 
 function readIntent(state: GameState, text: string, to?: string): Intent {
   if (!text) return { kind: 'hello' };
-  if (/^(deal|yes|yep|yeah|ok|okay|agreed|accept(ed)?|done|sure|fine|sold|shake on it|you'?ve got a deal|i'?ll take (it|that)|sounds good|let'?s do it)\b/.test(text) && !/\bfor\b/.test(text))
+  if (/^(deal|yes|yep|yeah|ok|okay|agreed|accept(ed)?|done|sure|fine|sold|shake on it|you'?ve got a deal|i'?ll take (it|that)|sounds good|let'?s do it)\b/.test(text) && !/\bfor\b|\d/.test(text))
     return { kind: 'accept' };
-  if (/^(no|nope|nah|pass|reject|not interested|no deal|no thanks|too (much|high|steep|dear)|forget it)\b/.test(text) && !/\bfor\b/.test(text))
+  if (/^(no|nope|nah|pass|reject|not interested|no deal|no thanks|too (much|high|steep|dear|expensive|pricey|rich)|that'?s too (much|high|steep|dear|expensive)|forget it|never mind)\b/.test(text) && !/\bfor\b/.test(text))
     return { kind: 'reject' };
   if (/\b(news|rumou?rs?|gossip|heard anything|hear anything|what'?s going on|anything new|what'?s the word)\b/.test(text)) return { kind: 'news' };
-  if (/\b(what do you (need|want)|what are you (after|looking for|buying)|need anything|want anything|what'?s on your list|what are you short)\b/.test(text))
+  if (/\b(what do you (need|want)(?! for)|what are you (after|looking for|buying)|need anything|want anything|what'?s on your list|what are you short)\b/.test(text))
     return { kind: 'needs' };
   const bidM = text.match(/\b(?:what would you pay|how much would you (?:pay|give)|what will you (?:pay|give)|would you buy|want to buy|buy (?:some of )?my)\b(.*)/);
   if (bidM) {
@@ -166,11 +168,23 @@ function readIntent(state: GameState, text: string, to?: string): Intent {
   }
   const priceM = text.match(/\b(?:how much (?:for|is|are|do you want for)?|what'?s your price (?:for|on)?|price (?:for|of|on)|what would you (?:take|want|charge) for|what do you want for|cost)\b(.*)/);
   if (priceM && !/\bfor\b.*\bfor\b/.test(text)) {
-    const g = firstGood(priceM[1]) ?? firstGood(text);
+    let g = firstGood(priceM[1]);
+    if (!g) {
+      const any = firstGood(text);
+      const n = priceM[1].match(/\b(\d+)\b/);
+      if (any) g = { good: any.good, qty: n ? Number(n[1]) : any.qty };
+    }
     if (g) return { kind: 'price', ...g };
   }
+  const bump = readBump(state, text, to);
+  if (bump) return bump;
   const offer = readOffer(state, text, to);
   if (offer) return offer;
+  const ask = text.match(/^(?:do you (?:have|sell|carry|stock|got)|got any|have you got|any|i'?d like|i want|i need|i'?m after|looking for|can i have)\b(.*)$|^(.*)\bplease$/);
+  if (ask) {
+    const g = firstGood(ask[1] ?? ask[2] ?? '');
+    if (g) return { kind: 'price', ...g };
+  }
   const sellM = text.match(/^(?:can i |could i |i'?d like to |i want to )?(?:buy|get)\s+(.+)$/);
   if (sellM) {
     const g = firstGood(sellM[1]);
@@ -178,6 +192,26 @@ function readIntent(state: GameState, text: string, to?: string): Intent {
   }
   if (/^(hi|hello|hey|morning|good (morning|day|evening)|greetings|ahoy)\b/.test(text)) return { kind: 'hello' };
   return { kind: 'unknown', text };
+}
+
+/**
+ * "how about 14", "ok 16 then", "make it 12": a new coin figure for the deal
+ * on the table, with everything else kept.
+ */
+function readBump(state: GameState, text: string, to?: string): Intent | null {
+  const m = text.match(/^(?:how about|what about|ok(?:ay)?|fine|make it|say|would you take|will you take|i'?ll (?:do|pay|give you|take)|i can do|i could do|meet me at|let'?s say)?[,\s]*(\d+)(?:\s*(?:coin|coins|silver|crowns))?(?:\s+then)?(?:\s*(?:for it|for that|instead))?$/);
+  if (!m || !to) return null;
+  const o = state.pending[to];
+  if (!o) return null;
+  const n = Number(m[1]);
+  // From the player's side: the merchant's `get` is what the player gives.
+  const give = { ...o.get };
+  const get = { ...o.give };
+  if (give.coin) give.coin = n;
+  else if (get.coin) get.coin = n;
+  else return null;
+  const later = o.later ? { give: o.later.get, get: o.later.give, due: o.later.due } : undefined;
+  return { kind: 'offer', give, get, later };
 }
 
 function readOffer(state: GameState, text0: string, to?: string): Intent | null {
