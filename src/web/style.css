@@ -315,6 +315,8 @@ textarea {
 .lang {
   display: flex;
   align-self: start;
+  grid-column: 3;
+  justify-self: end;
 }
 
 .lang button {
@@ -1169,6 +1171,12 @@ textarea {
   font-style: italic;
 }
 
+.quaylog .k-event:lang(zh),
+.quaylog .k-event :lang(zh),
+:lang(zh) .quaylog .k-event {
+  font-style: normal;
+}
+
 .quaylog .k-close {
   font-weight: 600;
 }
@@ -1249,6 +1257,11 @@ textarea {
 
   .masthead {
     grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .lang {
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .gauge {
