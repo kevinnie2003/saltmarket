@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Saltmarket</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <h1>Saltmarket</h1>
+      <div id="dayline" class="dayline"></div>
+    </header>
+
+    <section id="setup" class="setup">
+      <div class="card intro">
+        <p class="lede">You arrive at the harbour market with a cart, a little coin and one good order to fill. Haggle in plain words with the merchants on the quay. Each keeps their own books, hears their own rumours, and remembers how you treated them.</p>
+        <ul class="howto">
+          <li>Fill your contract before the market closes, or it pays nothing.</li>
+          <li>Type deals the way you'd say them: <code>3 dye for 2 wool</code>, <code>how much for your amber?</code>, <code>any news?</code>, <code>give me 2 iron now, I'll pay 15 coin on day 4</code>.</li>
+          <li>You score your profit over what your stall was worth on the first morning.</li>
+        </ul>
+        <div class="row">
+          <label>Market days <select id="days"><option value="6">6</option><option value="8" selected>8</option><option value="10">10</option></select></label>
+          <label>Seed <input id="seed" placeholder="random" size="10" /></label>
+        </div>
+        <div class="row">
+          <button id="start" class="primary">Open your stall</button>
+          <button id="continue" class="hidden">Continue saved game</button>
+          <button id="watch">Watch the merchants trade alone</button>
+        </div>
+      </div>
+    </section>
+
+    <main id="game" class="game hidden">
+      <aside class="col board">
+        <section class="card">
+          <h2>Price board</h2>
+          <table id="prices" class="prices"></table>
+        </section>
+        <section class="card">
+          <h2>Today</h2>
+          <p id="event" class="event"></p>
+          <h3>What you've heard</h3>
+          <ul id="rumors" class="rumors"></ul>
+        </section>
+        <section class="card">
+          <h2>On the quay</h2>
+          <ol id="market" class="market"></ol>
+        </section>
+      </aside>
+
+      <section class="col talk">
+        <nav id="stalls" class="stalls"></nav>
+        <section class="card chat">
+          <div id="stallhead" class="stallhead"></div>
+          <ol id="convo" class="convo" aria-live="polite"></ol>
+          <div id="table" class="table hidden"></div>
+          <div id="chips" class="chips"></div>
+          <div class="say">
+            <textarea id="input" rows="2" placeholder="Say something, e.g. 10 coin for 2 wool"></textarea>
+            <button id="send" class="primary">Say it</button>
+          </div>
+          <p id="preview" class="preview"></p>
+          <div class="row small">
+            <label id="voicebox" class="hidden">Merchants played by <select id="voice"></select></label>
+            <span id="talks" class="talks"></span>
+          </div>
+        </section>
+      </section>
+
+      <aside class="col you">
+        <section class="card">
+          <h2>Your stall</h2>
+          <div id="purse" class="purse"></div>
+          <ul id="mygoods" class="goods"></ul>
+        </section>
+        <section class="card">
+          <h2>Your contract</h2>
+          <div id="contract"></div>
+        </section>
+        <section class="card">
+          <h2>Promises</h2>
+          <ul id="promises" class="promises"></ul>
+        </section>
+        <section class="card">
+          <div id="standing" class="standing"></div>
+          <button id="endday" class="primary wide">End the day</button>
+        </section>
+      </aside>
+    </main>
+
+    <section id="result" class="result hidden"></section>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
