@@ -184,3 +184,15 @@ describe('promises the player makes', () => {
     expect($('stalls').textContent).toMatch(/doesn.t trust you/);
   });
 });
+
+describe('morning view', () => {
+  it('shows what happened at dusk and where to find what you need', async () => {
+    await boot();
+    $<HTMLInputElement>('seed').value = '11';
+    $('start').click();
+    expect($('contract').textContent).toMatch(/On the quay: |Nobody has any/);
+    let tries = 0;
+    while (!$('recap').textContent && tries++ < 6) $('endday').click();
+    expect($('recap').textContent).toMatch(/Since yesterday/);
+  });
+});

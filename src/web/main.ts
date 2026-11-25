@@ -17,9 +17,11 @@ interface UI {
   busy: boolean;
   /** Log length when the day started, to show what happened since. */
   seen: number;
+  /** What happened at dusk and overnight, shown the next morning. */
+  recap: LogEntry[];
 }
 
-const ui: UI = { state: null, stall: null, voice: 'local', busy: false, seen: 0 };
+const ui: UI = { state: null, stall: null, voice: 'local', busy: false, seen: 0, recap: [] };
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 
@@ -55,6 +57,7 @@ function begin(state: GameState): void {
   ui.state = state;
   ui.stall = ui.stall && state.merchants.some((m) => m.id === ui.stall) ? ui.stall : rivals(state)[0]?.id ?? null;
   ui.seen = state.log.length;
+  ui.recap = [];
   $('setup').classList.add('hidden');
   $('result').classList.add('hidden');
   $('game').classList.remove('hidden');
@@ -96,6 +99,10 @@ function signedNum(n: number): string {
 function renderToday(s: GameState): void {
   const ev = s.events.find((e) => e.day === s.day);
   $('event').textContent = ev?.text ?? '';
+  const recap = ui.recap.filter((l) => !l.private);
+  $('recap').innerHTML = recap.length
+    ? `<h3>Since yesterday</h3><ul>${recap.map((l) => `<li class="k-${l.kind}">${esc(l.text)}</li>`).join('')}</ul>`
+    : '';
   const you = s.merchants.find((m) => m.id === HUMAN);
   const heard = you ? s.rumors.filter((r) => you.heard.includes(r.id) && r.day > s.day) : [];
   const source = new Map<string, string>();
@@ -215,7 +222,10 @@ function renderYou(s: GameState): void {
   const needs = Object.entries(you.contract.needs) as [Good, number][];
   const rows = needs.map(([g, n]) => {
     const have = Math.min(you.goods[g], n);
-    return `<li><span>${g}</span><span class="bar"><span style="width:${(have / n) * 100}%"></span></span><span class="num">${you.goods[g]}/${n}</span></li>`;
+    const lack = n - you.goods[g];
+    const who = lack > 0 ? rivals(s).filter((m) => m.goods[g] > 0).map((m) => `${m.name.split(' ')[0]} ${m.goods[g]}`) : [];
+    const where = lack > 0 ? `<small>${who.length ? `On the quay: ${esc(who.join(', '))}` : 'Nobody has any on their stall'}</small>` : '';
+    return `<li><span>${g}</span><span class="bar"><span style="width:${(have / n) * 100}%"></span></span><span class="num">${you.goods[g]}/${n}</span>${where}</li>`;
   });
   const sc = scoreOf(s, you);
   $('contract').innerHTML = `<p>For ${esc(you.contract.client)}. Pays <b>${you.contract.reward}</b> coin at the close if all of it is there.</p><ul class="needs">${rows.join('')}</ul><p class="${sc.contractMet ? 'good' : 'muted'}">${sc.contractMet ? 'Filled. Keep these goods until the close.' : 'Not filled yet.'}</p>`;
@@ -353,7 +363,9 @@ export function declinePending(): void {
 export function finishDay(): void {
   const s = ui.state;
   if (!s || s.over || ui.busy) return;
+  const from = s.log.length;
   endDay(s);
+  ui.recap = s.log.slice(from).filter((l) => ['trade', 'promise', 'broken'].includes(l.kind));
   ui.seen = s.log.length;
   if (s.over) showResult();
   else render();
