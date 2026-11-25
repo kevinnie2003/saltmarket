@@ -1,150 +1,1354 @@
+/* Saltmarket: a harbour merchant's daybook. Cream paper, iron-gall ink, one
+   cinnabar seal colour, ruled ledger columns with figures set right. */
+
 :root {
-  --bg: #f3ede2;
-  --paper: #fbf8f2;
-  --ink: #2b2620;
-  --muted: #7b7163;
-  --line: #dcd2c2;
-  --sea: #1f5c6b;
-  --sea-2: #2f7d8f;
-  --rust: #b5542d;
-  --good: #3c7a3e;
-  --bad: #a83a2c;
-  --gold: #c08a2d;
-  --radius: 10px;
-  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  --paper: #f3ead6;
+  --paper-deep: #e9dcbf;
+  --sheet: #f8f1e2;
+  --field: #fcf8ee;
+  --ink: #1e1b18;
+  --ink-soft: #4b4337;
+  --ink-faint: #6b604f;
+  --rule: #cdbd9c;
+  --rule-strong: #9b8865;
+  --seal: #b3341d;
+  --seal-soft: rgba(179, 52, 29, 0.42);
+
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, 'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'Noto Serif SC', STSong, serif;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, 'Liberation Mono', 'Noto Sans Mono CJK SC', 'Songti SC', monospace;
+
+  /* A 1.2 type scale. */
+  --step--2: 0.72rem;
+  --step--1: 0.84rem;
+  --step-0: 1rem;
+  --step-1: 1.2rem;
+  --step-2: 1.44rem;
+  --step-3: 1.73rem;
+  --step-4: 2.3rem;
+  --leading: 1.5;
+
+  --gap: 1.25rem;
+  --pad: 1rem;
+
+  font-family: var(--serif);
+  font-size: 100%;
+  line-height: var(--leading);
   color: var(--ink);
-  background: var(--bg);
+  background: var(--paper);
 }
 
-* { box-sizing: border-box; }
-body { margin: 0; min-height: 100vh; }
-button, input, select, textarea { font: inherit; color: inherit; }
-code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.85em; background: #ece3d3; padding: 1px 5px; border-radius: 4px; }
-.hidden { display: none !important; }
-.muted { color: var(--muted); }
-.good { color: var(--good); }
-.bad { color: var(--bad); }
-.num { text-align: right; font-variant-numeric: tabular-nums; }
-.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
-.row.small { font-size: 0.85rem; color: var(--muted); }
-.spacer { flex: 1; }
-
-.top { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 22px; background: var(--sea); color: #f5efe4; }
-.top h1 { margin: 0; font-size: 1.6rem; letter-spacing: 0.04em; }
-.dayline { font-size: 1rem; opacity: 0.9; }
-
-.card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
-.card h2 { margin: 0 0 8px; font-size: 1.05rem; }
-.card h3 { margin: 12px 0 6px; font-size: 0.9rem; color: var(--muted); font-weight: normal; }
-
-button { border: 1px solid var(--line); background: #fff; border-radius: 8px; padding: 7px 13px; cursor: pointer; }
-button:hover:not(:disabled) { border-color: var(--sea-2); }
-button:disabled { opacity: 0.5; cursor: default; }
-button.primary { background: var(--sea); border-color: var(--sea); color: #fff; }
-button.primary:hover:not(:disabled) { background: var(--sea-2); }
-button.wide { width: 100%; margin-top: 10px; }
-button:focus-visible, textarea:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-
-.setup { max-width: 720px; margin: 40px auto; padding: 0 16px; }
-.lede { font-size: 1.15rem; line-height: 1.5; margin-top: 0; }
-.howto { line-height: 1.6; padding-left: 20px; }
-.setup input, .setup select { border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; background: #fff; }
-
-.game { display: grid; grid-template-columns: 260px minmax(0, 1fr) 270px; gap: 14px; padding: 14px; align-items: start; }
-.col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-
-.prices { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
-.prices th, .prices td { padding: 4px 4px; border-bottom: 1px solid var(--line); text-align: left; }
-.prices thead th { font-weight: normal; color: var(--muted); font-size: 0.8rem; }
-.prices .num { text-align: right; }
-.chg { font-size: 0.85rem; white-space: nowrap; }
-.chg.up { color: var(--good); }
-.chg.down { color: var(--bad); }
-.event { margin: 0; font-style: italic; }
-.rumors, .market, .promises, .goods, .needs { list-style: none; margin: 0; padding: 0; }
-.rumors li { padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 0.92rem; }
-.rumors .src { display: block; font-size: 0.75rem; color: var(--muted); }
-.market { max-height: 340px; overflow: auto; font-size: 0.86rem; }
-.market li { padding: 4px 0; border-bottom: 1px solid #efe7d9; }
-.market .d, .convo .d { color: var(--muted); font-size: 0.72rem; margin-right: 4px; }
-.market .k-broken { color: var(--bad); }
-.market .k-event { font-style: italic; }
-.market .k-close { font-weight: bold; }
-
-.stalls { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
-.stall { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left; position: relative; }
-.stall small { font-size: 0.78rem; color: var(--muted); }
-.stall small.good { color: var(--good); }
-.stall small.bad { color: var(--bad); }
-.stall.on { border-color: var(--sea); box-shadow: inset 0 0 0 1px var(--sea); background: #eef5f6; }
-.stall .dot { position: absolute; top: 8px; right: 8px; width: 9px; height: 9px; border-radius: 50%; background: var(--rust); }
-
-.chat { display: flex; flex-direction: column; gap: 10px; }
-.stallhead { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.stallhead h2 { margin: 0; }
-.stallhead p { margin: 2px 0 0; font-size: 0.9rem; max-width: 420px; }
-.theirs { display: flex; flex-wrap: wrap; gap: 4px; align-content: flex-start; max-width: 300px; justify-content: flex-end; }
-.g { font-size: 0.8rem; padding: 2px 7px; border-radius: 20px; background: #ece3d3; white-space: nowrap; }
-.g.coin { background: #f2e2bd; }
-.g-salt { background: #e9e9e4; } .g-amber { background: #f4d9a6; } .g-dye { background: #e1cfe8; }
-.g-wool { background: #f1ece3; } .g-spice { background: #f1cdb9; } .g-iron { background: #d5dbe0; }
-
-.convo { list-style: none; margin: 0; padding: 4px; min-height: 220px; max-height: 46vh; overflow: auto; display: flex; flex-direction: column; gap: 6px; }
-.convo li { max-width: 82%; padding: 7px 11px; border-radius: 12px; line-height: 1.4; font-size: 0.95rem; }
-.convo li.them { background: #efe7d9; align-self: flex-start; border-bottom-left-radius: 3px; }
-.convo li.me { background: var(--sea); color: #fff; align-self: flex-end; border-bottom-right-radius: 3px; }
-.convo li.me .d { color: #cfe3e7; }
-.convo li.k-rumor { background: #f6eccf; font-style: italic; }
-.convo li.muted { background: none; max-width: none; }
-
-.table { border: 1px solid var(--gold); background: #fbf2de; border-radius: 8px; padding: 9px 12px; }
-.table .row { margin-top: 6px; }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { font-size: 0.85rem; padding: 4px 10px; border-radius: 20px; background: #fff; }
-.say { display: flex; gap: 8px; }
-.say textarea { flex: 1; resize: vertical; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; background: #fff; }
-.preview { margin: 0; min-height: 1.2em; font-size: 0.88rem; color: var(--sea); transition: color 0.3s; }
-.preview.warn { color: var(--rust); }
-.talks { margin-left: auto; }
-
-.purse { font-size: 1.2rem; margin-bottom: 6px; }
-.goods li { display: grid; grid-template-columns: 1fr 34px; gap: 2px 8px; padding: 4px 0; border-bottom: 1px solid #efe7d9; }
-.goods li small { grid-column: 1 / -1; color: var(--muted); font-size: 0.75rem; margin-top: -3px; }
-.needs li { display: grid; grid-template-columns: 54px 1fr 40px; gap: 2px 8px; align-items: center; padding: 3px 0; }
-.needs li small { grid-column: 1 / -1; color: var(--muted); font-size: 0.75rem; }
-.recap ul { list-style: none; margin: 0; padding: 0; font-size: 0.86rem; }
-.recap li { padding: 3px 0; border-bottom: 1px dashed var(--line); }
-.recap .k-broken { color: var(--bad); }
-.bar { height: 8px; background: #ece3d3; border-radius: 4px; overflow: hidden; }
-.bar span { display: block; height: 100%; background: var(--sea-2); }
-#contract p { margin: 0 0 8px; font-size: 0.92rem; }
-.promises li { font-size: 0.88rem; padding: 4px 0; border-bottom: 1px solid #efe7d9; }
-.promises .p-broken { color: var(--bad); }
-.promises .p-kept { color: var(--good); }
-.promises .keep { display: block; font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
-.standing { font-size: 1rem; }
-
-.result { max-width: 760px; margin: 30px auto; padding: 0 16px; }
-.standings { width: 100%; border-collapse: collapse; margin: 10px 0; }
-.standings th, .standings td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
-.standings small { display: block; color: var(--muted); font-size: 0.78rem; }
-.standings tr.me td { background: #eef5f6; }
-
-@media (max-width: 1050px) {
-  .game { grid-template-columns: minmax(0, 1fr) 260px; }
-  .board { grid-column: 1 / -1; order: 3; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-}
-@media (max-width: 720px) {
-  .game { grid-template-columns: 1fr; padding: 8px; }
-  .you { order: 2; }
-  .board { order: 3; }
-  .convo { max-height: 50vh; }
-  .theirs { justify-content: flex-start; max-width: none; }
-  .top { padding: 10px 14px; }
+:root:lang(zh) {
+  --leading: 1.75;
 }
 
-.ledger { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin: 0.4rem 0; }
-.ledger td, .ledger th { padding: 0.25rem 0.4rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
-.ledger .num { text-align: right; white-space: nowrap; }
-.ledger .loss { color: var(--bad); }
-.ledger tr.best td { background: rgba(46, 107, 138, 0.08); }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--paper);
+  font-kerning: normal;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.muted {
+  color: var(--ink-faint);
+}
+
+.bad,
+.loss {
+  color: var(--seal);
+}
+
+/* Mono labels: the clerk's hand for captions and column heads. */
+.label {
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+:lang(zh) .label,
+.label:lang(zh) {
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: var(--step--1);
+}
+
+.figure,
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 2px solid var(--seal);
+  outline-offset: 2px;
+}
+
+/* ---------- buttons and fields ---------- */
+
+button {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--ink);
+  border-radius: 1px;
+  background: transparent;
+  cursor: pointer;
+  line-height: 1.25;
+  text-align: center;
+}
+
+button:hover:not(:disabled) {
+  background: var(--paper-deep);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  border-style: dashed;
+  color: var(--ink-faint);
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--ink);
+  color: var(--sheet);
+}
+
+button.primary:hover:not(:disabled) {
+  background: #000;
+}
+
+button.primary:disabled {
+  background: transparent;
+  color: var(--ink-faint);
+}
+
+button.wide {
+  width: 100%;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid var(--ink-soft);
+  border-radius: 1px;
+  background: var(--field);
+  padding: 0.45rem 0.6rem;
+  min-height: 2.5rem;
+}
+
+textarea {
+  resize: vertical;
+  line-height: var(--leading);
+}
+
+::placeholder {
+  color: var(--ink-faint);
+  opacity: 1;
+}
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.75rem 2rem;
+  padding: 1rem 1.5rem 0.8rem;
+  border-bottom: 3px double var(--ink);
+}
+
+.brand h1 {
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  line-height: 1.05;
+  font-variant: small-caps;
+}
+
+.brand .sub {
+  margin-top: 0.25rem;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+:lang(zh) .brand .sub {
+  letter-spacing: 0.02em;
+  font-size: var(--step--1);
+}
+
+.gauge {
+  display: grid;
+  gap: 0.35rem;
+  justify-self: center;
+  min-width: 0;
+}
+
+.gauge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.gauge-row .label {
+  min-width: 6.5rem;
+}
+
+.ticks {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ticks li {
+  width: 1.65rem;
+  height: 1.65rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--rule-strong);
+  margin-left: -1px;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+  background: var(--sheet);
+}
+
+/* Days gone are struck through in the book. */
+.ticks li.past {
+  color: var(--ink-faint);
+  background: linear-gradient(to top right, transparent calc(50% - 0.5px), var(--rule-strong) calc(50% - 0.5px), var(--rule-strong) calc(50% + 0.5px), transparent calc(50% + 0.5px)), var(--paper-deep);
+}
+
+.ticks li.now {
+  position: relative;
+  z-index: 1;
+  border: 2px solid var(--seal);
+  color: var(--seal);
+  font-weight: 700;
+}
+
+.dayline {
+  font-size: var(--step--1);
+  white-space: nowrap;
+}
+
+.pips {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.pips i {
+  width: 0.6rem;
+  height: 0.95rem;
+  border: 1px solid var(--ink-soft);
+}
+
+.pips i.on {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+#talkfig {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+.lang {
+  display: flex;
+  align-self: start;
+}
+
+.lang button {
+  min-height: 2.25rem;
+  min-width: 3.25rem;
+  padding: 0.25rem 0.7rem;
+  font-family: var(--mono);
+  font-size: var(--step--1);
+}
+
+.lang button + button {
+  margin-left: -1px;
+}
+
+.lang button[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--sheet);
+}
+
+/* ---------- sheets ---------- */
+
+.sheet {
+  background: var(--sheet);
+  border: 1px solid var(--rule-strong);
+  padding: var(--pad);
+  min-width: 0;
+}
+
+.sheet > .head {
+  font-size: var(--step-1);
+  font-weight: 600;
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.65rem;
+  border-bottom: 3px double var(--rule-strong);
+}
+
+.sheet h3.label {
+  margin: 0.9rem 0 0.35rem;
+}
+
+/* ---------- ledger tables ---------- */
+
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+}
+
+.ledger th,
+.ledger td {
+  padding: 0.32rem 0.4rem;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: baseline;
+  font-weight: normal;
+}
+
+.ledger td:not(.num),
+.ledger th:not(.num) {
+  overflow-wrap: anywhere;
+}
+
+.ledger thead th {
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--ink);
+}
+
+:lang(zh) .ledger thead th {
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: var(--step--1);
+}
+
+.ledger th:first-child,
+.ledger td:first-child {
+  padding-left: 0;
+}
+
+.ledger th:last-child,
+.ledger td:last-child {
+  padding-right: 0;
+}
+
+.ledger .num {
+  text-align: right;
+}
+
+/* ---------- the start page ---------- */
+
+.setup {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 2rem 3rem;
+  max-width: 72rem;
+  padding: 2.25rem 1.5rem 3rem;
+  align-items: start;
+}
+
+.folio .title,
+.final .title {
+  font-size: var(--step-4);
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 0.5rem 0 1rem;
+  max-width: 22em;
+}
+
+:lang(zh) .folio .title,
+:lang(zh) .final .title {
+  font-size: var(--step-3);
+  line-height: 1.4;
+}
+
+.lede {
+  font-size: var(--step-1);
+  max-width: 34em;
+  margin-bottom: 1.6rem;
+}
+
+.rules {
+  counter-reset: rule;
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  max-width: 40em;
+  border-top: 1px solid var(--ink);
+}
+
+.rules li {
+  counter-increment: rule;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.rules li::before {
+  content: counter(rule, decimal-leading-zero);
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--seal);
+  padding-top: 0.1em;
+}
+
+.side {
+  min-width: 0;
+}
+
+.ticket {
+  background: var(--sheet);
+  border: 1px solid var(--ink);
+  outline: 1px solid var(--rule-strong);
+  outline-offset: 3px;
+  padding: 1.1rem;
+  margin: 3px 3px 1.5rem;
+}
+
+.ticket > .label {
+  display: block;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 0.4rem;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.75rem;
+  margin: 0.9rem 0 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  font-family: var(--mono);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.examples {
+  list-style: none;
+  margin: 0 0 1.2rem;
+  padding: 0;
+}
+
+.examples li {
+  padding: 0.35rem 0;
+  border-bottom: 1px dotted var(--rule-strong);
+  overflow-wrap: anywhere;
+}
+
+.fine {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+  max-width: 32em;
+}
+
+/* ---------- the game ---------- */
+
+.game {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 19rem 17.5rem;
+  gap: var(--gap);
+  padding: var(--gap) 1.5rem 2.5rem;
+  align-items: start;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+/* The index of merchants: one entry each. */
+.stalls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  border-top: 1px solid var(--ink);
+}
+
+.stall {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 0;
+  padding: 0.55rem 1.6rem 0.55rem 0.7rem;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--rule-strong);
+  border-right: 1px solid var(--rule);
+  background: transparent;
+}
+
+.stall .who {
+  font-weight: 600;
+  font-size: var(--step-0);
+  overflow-wrap: anywhere;
+}
+
+.stall small {
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+}
+
+.stall small.good {
+  color: var(--ink);
+}
+
+.stall small.bad {
+  color: var(--seal);
+}
+
+.stall.on {
+  background: var(--sheet);
+  box-shadow: inset 0 3px 0 var(--ink);
+}
+
+/* A merchant with a deal waiting gets the seal. */
+.seal {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.6rem;
+  width: 0.65rem;
+  height: 0.65rem;
+  background: var(--seal);
+  transform: rotate(45deg);
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.stallhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px double var(--rule-strong);
+}
+
+.who-block {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.stallhead h2 {
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.blurb {
+  margin-top: 0.2rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  max-width: 36em;
+}
+
+:lang(zh) .blurb,
+.blurb:lang(zh) {
+  font-style: normal;
+}
+
+.theirs {
+  flex: 0 1 11rem;
+  min-width: 9rem;
+}
+
+.stock {
+  margin-top: 0.15rem;
+}
+
+.stock tr.coin th,
+.stock tr.coin td {
+  border-bottom: 0;
+  border-top: 1px solid var(--ink);
+}
+
+/* The daybook: one ruled line per thing said, the day in the margin. */
+.convo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-height: 12rem;
+  max-height: min(30rem, 56vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid var(--rule);
+}
+
+.convo li {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  border-bottom: 1px solid var(--rule);
+}
+
+:lang(zh) .convo li {
+  grid-template-columns: 4.75rem minmax(0, 1fr);
+}
+
+.convo .d,
+.quaylog .d {
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.convo .d {
+  padding: 0.5rem 0.5rem 0 0;
+  border-right: 1px solid var(--seal-soft);
+}
+
+.convo .line {
+  padding: 0.4rem 0 0.4rem 0.75rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.convo li.me .line {
+  padding-left: 1.75rem;
+  color: var(--ink-soft);
+  position: relative;
+}
+
+/* What you said: set in from the margin with a short dash, like a reply noted in the book. */
+.convo li.me .line::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 1.05em;
+  width: 0.6rem;
+  border-top: 1px solid var(--ink-soft);
+}
+
+.convo li.k-rumor .line {
+  font-style: italic;
+}
+
+:lang(zh) .convo li.k-rumor .line,
+.convo li.k-rumor .line:lang(zh) {
+  font-style: normal;
+}
+
+.convo li.muted {
+  display: block;
+  padding: 0.6rem 0;
+  border-bottom: 0;
+}
+
+/* The deal on the table, as a bill of exchange: both sides, then what it does to your worth. */
+.bill {
+  border: 3px double var(--ink);
+  background: var(--field);
+  padding: 0.85rem 1rem;
+  min-width: 0;
+}
+
+.bill-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--ink);
+}
+
+.bill-head .label {
+  color: var(--seal);
+}
+
+.bill-from {
+  font-style: italic;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+:lang(zh) .bill-from {
+  font-style: normal;
+}
+
+.bill-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.bill-side {
+  padding: 0.6rem 0.9rem 0.6rem 0;
+  min-width: 0;
+}
+
+.bill-side + .bill-side {
+  padding: 0.6rem 0 0.6rem 0.9rem;
+  border-left: 1px solid var(--rule-strong);
+}
+
+.bill-side .label {
+  margin: 0 0 0.2rem;
+}
+
+.bill-side .ledger td.num {
+  width: 3.5rem;
+  font-size: var(--step-0);
+}
+
+.bill-side tr.later th {
+  padding-top: 0.55rem;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+  border-bottom: 1px dotted var(--rule-strong);
+}
+
+.bill-worth {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--ink);
+  font-size: var(--step--1);
+}
+
+/* A dotted leader runs from the words to the figure. */
+.bill-worth span:first-child {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.bill-worth span:first-child::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px dotted var(--ink-faint);
+  min-width: 1rem;
+}
+
+.bill-worth .figure {
+  font-size: var(--step-1);
+  white-space: nowrap;
+}
+
+.bill-problem {
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--ink);
+  font-size: var(--step--1);
+}
+
+.bill-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.bill-actions .hint {
+  font-size: var(--step--1);
+  color: var(--ink-faint);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chips:empty {
+  display: none;
+}
+
+.chip {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.7rem;
+  font-size: var(--step--1);
+  border: 1px dashed var(--ink-soft);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.say {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.say-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.say-row textarea {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--step-0);
+}
+
+.preview {
+  min-height: 1.4em;
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.preview.warn {
+  color: var(--seal);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.row.small {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+.row.small select {
+  min-height: 2.25rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.talks {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+}
+
+/* ---------- your side ---------- */
+
+.purse {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.purse .label {
+  flex: 1;
+}
+
+.purse .figure,
+.standing .figure {
+  font-size: var(--step-3);
+  line-height: 1;
+}
+
+.purse .unit,
+.standing .unit {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+.goods tr.nil th,
+.goods tr.nil td {
+  color: var(--ink-faint);
+}
+
+.goods tr.wanted th {
+  font-weight: 600;
+}
+
+.goods td.unit {
+  font-size: var(--step--2);
+  color: var(--ink-faint);
+  padding-left: 0.3rem;
+}
+
+/* The contract: an order slip with the seal stamped on it. */
+.slip {
+  position: relative;
+  border-color: var(--ink);
+}
+
+.slip-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.stamp {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border: 2px solid var(--seal);
+  outline: 1px solid var(--seal);
+  outline-offset: 2px;
+  color: var(--seal);
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-6deg);
+  white-space: nowrap;
+}
+
+:lang(zh) .stamp {
+  letter-spacing: 0.25em;
+  padding-right: 0.25rem;
+}
+
+.stamp.open {
+  border-style: dashed;
+  outline: 0;
+  font-weight: 500;
+  transform: rotate(-3deg);
+}
+
+.slip-for {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.slip-pays {
+  font-size: var(--step--1);
+  margin-bottom: 0.4rem;
+}
+
+.needs td.meter {
+  width: 40%;
+  vertical-align: middle;
+}
+
+.bar {
+  display: block;
+  height: 0.5rem;
+  border: 1px solid var(--ink-soft);
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+
+.needs tr.where td {
+  padding-top: 0;
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+}
+
+#contract > p:last-child {
+  margin-top: 0.5rem;
+  font-size: var(--step--1);
+}
+
+#contract .done {
+  font-weight: 600;
+}
+
+.promises {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.promises li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 0.6rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--step--1);
+}
+
+.promises li.muted {
+  display: block;
+  border-bottom: 0;
+}
+
+.promises .what {
+  overflow-wrap: anywhere;
+}
+
+.promises .due {
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.promises .p-broken .what {
+  text-decoration: line-through;
+  text-decoration-color: var(--seal);
+}
+
+.promises .p-broken .due {
+  color: var(--seal);
+}
+
+.promises .keep {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  cursor: pointer;
+}
+
+.promises .keep input {
+  min-height: 0;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  accent-color: var(--ink);
+}
+
+.closing {
+  display: grid;
+  gap: 0.75rem;
+  border-color: var(--ink);
+}
+
+.standing {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+}
+
+.standing .label {
+  flex: 1 1 100%;
+}
+
+/* ---------- the board ---------- */
+
+.prices .chg {
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+}
+
+.prices .chg.up {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.prices .chg.down {
+  color: var(--seal);
+}
+
+.event {
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+:lang(zh) .event {
+  font-style: normal;
+}
+
+.recap ul,
+.rumors,
+.quaylog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.recap li,
+.rumors li,
+.quaylog li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--step--1);
+  overflow-wrap: anywhere;
+}
+
+.recap .k-broken,
+.quaylog .k-broken {
+  color: var(--seal);
+}
+
+.rumors .src {
+  display: block;
+}
+
+.quaylog .d {
+  margin-right: 0.35rem;
+}
+
+.quaylog .k-event {
+  font-style: italic;
+}
+
+.quaylog .k-close {
+  font-weight: 600;
+}
+
+/* ---------- the close ---------- */
+
+.result {
+  padding: 2rem 1.5rem 3rem;
+}
+
+.final {
+  max-width: 60rem;
+  padding: 1.5rem;
+  border-color: var(--ink);
+}
+
+.final .title {
+  font-size: var(--step-3);
+}
+
+.final > .muted,
+.final > p {
+  margin: 0.6rem 0;
+}
+
+.standings {
+  margin: 0.75rem 0;
+  font-size: var(--step-0);
+}
+
+.standings small {
+  display: block;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-faint);
+}
+
+.standings tr.me th,
+.standings tr.me td {
+  background: var(--paper-deep);
+}
+
+.standings tr.me th b::after {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-left: 0.45rem;
+  background: var(--seal);
+  transform: rotate(45deg) translateY(-0.1rem);
+}
+
+.deals td {
+  vertical-align: top;
+}
+
+.deals tr.best td {
+  background: var(--paper-deep);
+}
+
+.final .actions {
+  margin-top: 1.25rem;
+}
+
+/* ---------- narrower screens ---------- */
+
+@media (max-width: 1180px) {
+  .game {
+    grid-template-columns: minmax(0, 1fr) 19rem;
+  }
+
+  .board {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    align-items: start;
+  }
+
+  .masthead {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .gauge {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --gap: 0.85rem;
+    --pad: 0.85rem;
+  }
+
+  .masthead {
+    padding: 0.75rem 0.85rem 0.65rem;
+  }
+
+  .brand h1 {
+    font-size: var(--step-2);
+  }
+
+  .gauge-row .label {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .setup {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 1.25rem 0.85rem 2rem;
+  }
+
+  .folio .title {
+    font-size: var(--step-3);
+  }
+
+  .lede {
+    font-size: var(--step-0);
+  }
+
+  .game {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--gap) 0.85rem 2rem;
+  }
+
+  .board {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* One column, one scroll: the page itself. */
+  .convo {
+    max-height: none;
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .stalls {
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  }
+
+  .theirs {
+    flex: 1 1 100%;
+  }
+
+  .result {
+    padding: 1rem 0.85rem 2rem;
+  }
+
+  .final {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .bill-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bill-side,
+  .bill-side + .bill-side {
+    padding: 0.5rem 0;
+    border-left: 0;
+  }
+
+  .bill-side + .bill-side {
+    border-top: 1px dotted var(--rule-strong);
+  }
+
+  .say-row {
+    flex-direction: column;
+  }
+
+  .ticks li {
+    width: 1.45rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:active:not(:disabled) {
+    transform: none;
+  }
+}

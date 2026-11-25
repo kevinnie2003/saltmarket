@@ -1,0 +1,356 @@
+// Every word the page shows, in English and Simplified Chinese. Words that come
+// from the game itself (goods, deals, events) are worded in src/i18n/words.ts.
+import type { Lang } from '../i18n/lang.js';
+import { spaceMixed } from '../i18n/spacing.js';
+
+export { num, signed } from '../i18n/words.js';
+
+const EN = {
+  docTitle: 'Saltmarket · a harbour market daybook',
+  brand: 'Saltmarket',
+  brandSub: 'Harbour market daybook',
+  langLabel: 'Language',
+  gaugeLabel: 'Market days',
+  gaugeTalks: 'Talks today',
+  dayOf: (d: number, n: number) => `Day ${d} of ${n}`,
+  closed: 'The market has closed',
+  dayCell: (d: number) => `Day ${d}`,
+  talksLeft: (n: number, m: number) => `${n} of ${m} talks left today`,
+
+  // the start page
+  setupLabel: 'Folio 1 · Arrival',
+  setupTitle: 'A cart, a little coin, and one good order to fill.',
+  lede: 'You arrive at the harbour market and haggle in plain words with the merchants on the quay. Each keeps their own books, hears their own rumours, and remembers how you treated them.',
+  rulesTitle: 'Terms of the market',
+  rules: [
+    'Fill your contract before the market closes, or it pays nothing.',
+    'Type deals the way you would say them. The line under the box shows how your words were read before you send them.',
+    'Six talks a day. End the day and the merchants trade among themselves at dusk; the next morning brings an event and new rumours.',
+    'Your score is your profit over what your stall was worth on the first morning.',
+  ],
+  examplesTitle: 'Things you can say',
+  examples: ['3 dye for 2 wool', 'how much for your amber?', 'Marta, what do you need?', 'any news?', "give me 2 iron now, I'll pay 15 coin on day 4", 'deal'],
+  ticketTitle: 'Open the books',
+  daysLabel: 'Market days',
+  seedLabel: 'Seed',
+  seedPh: 'random',
+  start: 'Open your stall',
+  continue: 'Continue saved game',
+  watch: 'Watch the merchants trade alone',
+  ticketFine: 'Switch language at the top right at any time. The ledgers and cards change at once; lines already in the daybook stay in the language they were written in.',
+
+  // the board
+  boardHead: 'Price board',
+  boardGood: 'Good',
+  boardPrice: 'Price',
+  boardSince: 'Since day 1',
+  todayHead: 'Today',
+  recapHead: 'Since yesterday',
+  heardHead: 'What you have heard',
+  heardFrom: 'Heard',
+  heardDockhand: 'A dockhand',
+  heardNone: 'Nothing yet. Ask around: any news?',
+  quayHead: 'On the quay',
+  quayNone: 'Nothing has changed hands yet.',
+  logDay: (d: number) => `day ${d}`,
+
+  // the stalls
+  stallsLabel: 'Merchants on the quay',
+  hasOffer: 'has an offer for you',
+  mood: { bad: 'doesn’t trust you', cold: 'cold with you', good: 'friendly', neutral: 'neutral' },
+  stockHead: 'On the stall',
+  stockNone: 'nothing on the stall',
+  coinWord: 'coin',
+  notYet: (first: string) => `You haven’t spoken to ${first} yet. Say hello, or make an offer.`,
+  convoLabel: (name: string) => `Conversation with ${name}`,
+
+  // the offer on the table
+  billHead: 'On the table',
+  billFrom: (name: string) => `from ${name}`,
+  billGive: 'You give',
+  billGet: 'You receive',
+  billNothing: 'nothing',
+  billLater: (day: number) => `On day ${day}`,
+  billYouDeliver: 'you deliver',
+  billTheyDeliver: 'they deliver',
+  billWorth: 'Change to your worth, by your books',
+  billCoin: 'coin',
+  accept: 'Accept',
+  decline: 'Decline',
+  counterHint: 'or type a counter below',
+
+  // talking
+  sayLabel: 'What you say',
+  sayPh: 'Say something, e.g. 10 coin for 2 wool',
+  send: 'Say it',
+  voiceLabel: 'Merchants played by',
+  voiceLocal: 'built-in merchants',
+  voiceMock: 'offline model stand-in',
+  chipNeeds: 'What do you need?',
+  chipNews: 'Any news?',
+  chipPrice: (amount: string) => `How much for ${amount}?`,
+  chipBid: (good: string) => `What would you pay for my ${good}?`,
+  previewTo: (name: string) => ` (to ${name})`,
+  intent: {
+    offer: (parts: string) => `Offer: ${parts}`,
+    acceptOn: 'Accept the deal on the table',
+    acceptNone: 'Accept (there is nothing on the table)',
+    rejectOn: 'Turn down the deal on the table',
+    rejectNone: 'Say goodbye',
+    price: (amount: string) => `Ask their price for ${amount}`,
+    bid: (n: number, good: string, _amount: string) => `Ask what they'd pay for ${n} of your ${good}`,
+    needs: 'Ask what they need',
+    news: 'Ask for news',
+    hello: 'Say hello',
+    unknown: 'Not sure what that means yet',
+  },
+  youGive: (b: string) => `you give ${b}`,
+  youGet: (b: string) => `you get ${b}`,
+  youDeliver: (b: string, d: number) => `you deliver ${b} on day ${d}`,
+  theyDeliver: (b: string, d: number) => `they deliver ${b} on day ${d}`,
+  partsJoin: ', ',
+  pickStall: 'Pick a stall first.',
+  unreachable: (why: string) => `Couldn’t reach the model (${why}), so a built-in merchant answered.`,
+
+  // your side
+  youHead: 'Your stall',
+  purse: 'Purse',
+  goodsGood: 'Good',
+  goodsHave: 'Have',
+  goodsNeed: 'Need',
+  contractHead: 'Your contract',
+  orderNo: (n: number) => `Order no. ${n}`,
+  orderFor: (client: string) => `For ${client}`,
+  orderPays: (reward: number) => `Pays ${reward} coin at the close if all of it is there.`,
+  onQuay: (who: string) => `On the quay: ${who}`,
+  nobodyHas: 'Nobody has any on their stall',
+  filled: 'Filled. Keep these goods until the close.',
+  notFilled: 'Not filled yet.',
+  stampFilled: 'Filled',
+  stampOpen: 'Open',
+  promisesHead: 'Promises',
+  promisesNone: 'None. A deal can include a delivery on a later day.',
+  youOwe: (who: string, what: string) => `You owe ${who} ${what}`,
+  owesYou: (who: string, what: string) => `${who} owes you ${what}`,
+  promiseDue: (d: number) => `day ${d}`,
+  promiseStatus: { open: 'open', kept: 'kept', broken: 'broken' } as Record<string, string>,
+  keepIt: 'keep it',
+  standing: 'If the market closed now',
+  profitWord: 'profit',
+  endDay: 'End the day',
+  closeMarket: 'Close the market',
+
+  // the close
+  resultLabel: 'Final folio · the close',
+  headFirst: 'You finished first on the quay.',
+  headPlace: (place: number) => `You finished ${['first', 'second', 'third', 'fourth', 'fifth'][place] ?? `number ${place + 1}`}.`,
+  headWatch: 'The merchants traded on their own.',
+  colRank: 'No.',
+  colMerchant: 'Merchant',
+  colProfit: 'Profit',
+  colContract: 'Contract',
+  contractFilled: (reward: number) => `filled (${reward})`,
+  contractMissed: 'missed',
+  summary: (trades: number, broken: number, lies: number | null) =>
+    `${trades} trades, ${broken} broken promise${broken === 1 ? '' : 's'}${lies === null ? '' : `, ${lies} false rumour${lies === 1 ? '' : 's'} reached you`}.`,
+  again: 'Play again',
+  sameSeed: 'Same market again',
+  dealsHead: 'Your deals',
+  colDay: 'Day',
+  colWith: 'With',
+  colDeal: 'Deal',
+  colAtClose: 'At close',
+  gave: (b: string) => `gave ${b}`,
+  got: (b: string) => `got ${b}`,
+  owed: (b: string, d: number) => `owed ${b} on day ${d}`,
+  dealJoin: '; ',
+  noDeals: 'You made no deals this market.',
+  dealsNote: 'Valued at the closing prices. A deal can lose on paper and still be worth it if it filled your contract.',
+};
+
+export type Strings = typeof EN;
+
+const ZH: Strings = {
+  docTitle: 'Saltmarket 盐市 · 港口集市流水账',
+  brand: 'Saltmarket',
+  brandSub: '港口集市流水账',
+  langLabel: '语言',
+  gaugeLabel: '集市日',
+  gaugeTalks: '今日交谈',
+  dayOf: (d, n) => `第${d}天（共${n}天）`,
+  closed: '市场已经收了',
+  dayCell: (d) => `第${d}天`,
+  talksLeft: (n, m) => `今天还能谈${n}次（共${m}次）`,
+
+  setupLabel: '第一页 · 初到码头',
+  setupTitle: '一辆货车，一点钱，一张要交的好订单。',
+  lede: '你来到港口集市，用平常说话的方式和码头上的商人讨价还价。每个商人都有自己的账本，听到各自的传闻，也记得你是怎么对待他们的。',
+  rulesTitle: '集市的规矩',
+  rules: [
+    '收市前把订单凑齐，不然一文也拿不到。',
+    '怎么说话就怎么写买卖。发出之前，输入框下面那一行会告诉你这句话被读成了什么。',
+    '每天能谈六次。结束一天后，商人们会在黄昏互相交易；第二天早上会有新事件和新传闻。',
+    '得分是你的盈利：收市时的身家减去第一天早上摊位的价值。',
+  ],
+  examplesTitle: '可以这样说',
+  examples: ['3 罐染料换 2 捆羊毛', '你的琥珀多少钱？', '玛塔，你缺什么？', '有什么消息？', '先给我 2 锭铁，第 4 天付你 15 文', '成交'],
+  ticketTitle: '开账',
+  daysLabel: '集市天数',
+  seedLabel: '种子',
+  seedPh: '随机',
+  start: '摆开你的摊位',
+  continue: '继续上次的存档',
+  watch: '看商人们自己交易',
+  ticketFine: '随时可以在右上角切换语言。账目和卡片会立刻换成新语言；流水账里已经写下的记录保持原来的语言。',
+
+  boardHead: '行情牌',
+  boardGood: '货物',
+  boardPrice: '价格',
+  boardSince: '较第 1 天',
+  todayHead: '今日',
+  recapHead: '昨天以来',
+  heardHead: '你听到的传闻',
+  heardFrom: '听说',
+  heardDockhand: '码头工人',
+  heardNone: '还没有。四处问问：有什么消息？',
+  quayHead: '码头上',
+  quayNone: '还没有人成交。',
+  logDay: (d) => `第${d}天`,
+
+  stallsLabel: '码头上的商人',
+  hasOffer: '有一笔买卖要给你',
+  mood: { bad: '不信任你', cold: '对你冷淡', good: '友好', neutral: '一般' },
+  stockHead: '摊上的货',
+  stockNone: '摊上什么也没有',
+  coinWord: '文',
+  notYet: (first) => `你还没和${first}说过话。打个招呼，或者开个价。`,
+  convoLabel: (name) => `和${name}的对话`,
+
+  billHead: '桌上的买卖',
+  billFrom: (name) => `来自${name}`,
+  billGive: '你付出',
+  billGet: '你收到',
+  billNothing: '无',
+  billLater: (day) => `第${day}天`,
+  billYouDeliver: '你交付',
+  billTheyDeliver: '对方交付',
+  billWorth: '按你的账本，身家变化',
+  billCoin: '文',
+  accept: '接受',
+  decline: '拒绝',
+  counterHint: '或在下面打字还价',
+
+  sayLabel: '你说的话',
+  sayPh: '说点什么，比如：10 文买 2 捆羊毛',
+  send: '说出口',
+  voiceLabel: '商人由谁来演',
+  voiceLocal: '内置商人',
+  voiceMock: '离线模型替身',
+  chipNeeds: '你缺什么？',
+  chipNews: '有什么消息？',
+  chipPrice: (amount) => `${amount}多少钱？`,
+  chipBid: (good) => `我的${good}你出多少？`,
+  previewTo: (name) => `（对${name}说）`,
+  intent: {
+    offer: (parts) => `出价：${parts}`,
+    acceptOn: '接受桌上的买卖',
+    acceptNone: '接受（桌上还没有买卖）',
+    rejectOn: '拒绝桌上的买卖',
+    rejectNone: '道别',
+    price: (amount) => `问${amount}的卖价`,
+    bid: (_n, _good, amount) => `问他们愿意出多少买你的${amount}`,
+    needs: '问他们缺什么',
+    news: '打听消息',
+    hello: '打个招呼',
+    unknown: '还看不懂这句话',
+  },
+  youGive: (b) => `你付出${b}`,
+  youGet: (b) => `你得到${b}`,
+  youDeliver: (b, d) => `第${d}天你交付${b}`,
+  theyDeliver: (b, d) => `第${d}天对方交付${b}`,
+  partsJoin: '，',
+  pickStall: '先选一个摊位。',
+  unreachable: (why) => `连不上模型（${why}），由内置商人代为回答。`,
+
+  youHead: '你的摊位',
+  purse: '钱袋',
+  goodsGood: '货物',
+  goodsHave: '现有',
+  goodsNeed: '订单要',
+  contractHead: '你的订单',
+  orderNo: (n) => `订单第 ${n} 号`,
+  orderFor: (client) => `订货人：${client}`,
+  orderPays: (reward) => `收市时货齐，付 ${reward} 文。`,
+  onQuay: (who) => `码头上有：${who}`,
+  nobodyHas: '摊位上谁都没有',
+  filled: '已凑齐。收市前别把这些货卖掉。',
+  notFilled: '还没凑齐。',
+  stampFilled: '已齐',
+  stampOpen: '未齐',
+  promisesHead: '约定',
+  promisesNone: '没有。一笔买卖可以约定以后某天再交货。',
+  youOwe: (who, what) => `你欠${who}${what}`,
+  owesYou: (who, what) => `${who}欠你${what}`,
+  promiseDue: (d) => `第${d}天`,
+  promiseStatus: { open: '未到期', kept: '已守约', broken: '已违约' },
+  keepIt: '守约',
+  standing: '要是现在收市',
+  profitWord: '盈利',
+  endDay: '结束这一天',
+  closeMarket: '收市',
+
+  resultLabel: '末页 · 收市',
+  headFirst: '你在码头上拔得头筹。',
+  headPlace: (place) => `你排在第${['一', '二', '三', '四', '五'][place] ?? place + 1}名。`,
+  headWatch: '商人们自己做完了买卖。',
+  colRank: '名次',
+  colMerchant: '商人',
+  colProfit: '盈利',
+  colContract: '订单',
+  contractFilled: (reward) => `已完成（${reward}）`,
+  contractMissed: '未完成',
+  summary: (trades, broken, lies) => `共成交 ${trades} 笔，违约 ${broken} 次${lies === null ? '' : `，你听到的假传闻有 ${lies} 条`}。`,
+  again: '再玩一局',
+  sameSeed: '同一个集市再来一次',
+  dealsHead: '你的买卖',
+  colDay: '日',
+  colWith: '对象',
+  colDeal: '内容',
+  colAtClose: '按收市价',
+  gave: (b) => `付出${b}`,
+  got: (b) => `得到${b}`,
+  owed: (b, d) => `第${d}天交付${b}`,
+  dealJoin: '；',
+  noDeals: '这一场集市你没有做成任何买卖。',
+  dealsNote: '按收市价计算。一笔买卖在账面上亏了，只要帮你凑齐了订单，也可能是值得的。',
+};
+
+/** Applies Chinese spacing to every worded string, including the ones built from names and figures. */
+function spaced<T>(v: T): T {
+  if (typeof v === 'string') return spaceMixed(v) as T;
+  if (typeof v === 'function') return ((...args: unknown[]) => spaceMixed(String((v as (...a: unknown[]) => unknown)(...args)))) as T;
+  if (Array.isArray(v)) return v.map(spaced) as T;
+  if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, spaced(x)])) as T;
+  return v;
+}
+
+const TABLE: Record<Lang, Strings> = { en: EN, zh: spaced(ZH) };
+
+let current: Lang = 'en';
+
+export function setUiLang(lang: Lang): void {
+  current = lang;
+}
+
+export function uiLang(): Lang {
+  return current;
+}
+
+/** The strings for the interface's current language. */
+export function S(): Strings {
+  return TABLE[current];
+}
+
+export function stringsFor(lang: Lang): Strings {
+  return TABLE[lang];
+}

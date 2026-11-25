@@ -3,90 +3,122 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
     <title>Saltmarket</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <header class="top">
-      <h1>Saltmarket</h1>
-      <div id="dayline" class="dayline"></div>
+    <header class="masthead">
+      <div class="brand">
+        <h1 data-t="brand">Saltmarket</h1>
+        <p class="sub" data-t="brandSub"></p>
+      </div>
+      <div id="gauge" class="gauge hidden">
+        <div class="gauge-row">
+          <span class="label" data-t="gaugeLabel"></span>
+          <ol id="daygauge" class="ticks" aria-hidden="true"></ol>
+          <span id="dayline" class="figure dayline"></span>
+        </div>
+        <div class="gauge-row">
+          <span class="label" data-t="gaugeTalks"></span>
+          <span id="pips" class="pips" aria-hidden="true"></span>
+          <span id="talkfig" class="figure"></span>
+        </div>
+      </div>
+      <div class="lang" role="group" data-t-aria="langLabel">
+        <button type="button" data-lang="en" lang="en">EN</button>
+        <button type="button" data-lang="zh" lang="zh-CN">中文</button>
+      </div>
     </header>
 
     <section id="setup" class="setup">
-      <div class="card intro">
-        <p class="lede">You arrive at the harbour market with a cart, a little coin and one good order to fill. Haggle in plain words with the merchants on the quay. Each keeps their own books, hears their own rumours, and remembers how you treated them.</p>
-        <ul class="howto">
-          <li>Fill your contract before the market closes, or it pays nothing.</li>
-          <li>Type deals the way you'd say them: <code>3 dye for 2 wool</code>, <code>how much for your amber?</code>, <code>any news?</code>, <code>give me 2 iron now, I'll pay 15 coin on day 4</code>.</li>
-          <li>You score your profit over what your stall was worth on the first morning.</li>
-        </ul>
-        <div class="row">
-          <label>Market days <select id="days"><option value="6">6</option><option value="8" selected>8</option><option value="10">10</option></select></label>
-          <label>Seed <input id="seed" placeholder="random" size="10" /></label>
+      <div class="folio">
+        <p class="label" data-t="setupLabel"></p>
+        <h2 class="title" data-t="setupTitle"></h2>
+        <p class="lede" data-t="lede"></p>
+        <h3 class="label" data-t="rulesTitle"></h3>
+        <ol id="rules" class="rules"></ol>
+      </div>
+      <div class="side">
+        <div class="ticket">
+          <h3 class="label" data-t="ticketTitle"></h3>
+          <div class="fields">
+            <label class="field"
+              ><span class="label" data-t="daysLabel"></span>
+              <select id="days"><option value="6">6</option><option value="8" selected>8</option><option value="10">10</option></select>
+            </label>
+            <label class="field"><span class="label" data-t="seedLabel"></span> <input id="seed" data-t-ph="seedPh" autocomplete="off" spellcheck="false" /></label>
+          </div>
+          <div class="actions">
+            <button type="button" id="start" class="primary" data-t="start"></button>
+            <button type="button" id="continue" class="hidden" data-t="continue"></button>
+            <button type="button" id="watch" data-t="watch"></button>
+          </div>
         </div>
-        <div class="row">
-          <button id="start" class="primary">Open your stall</button>
-          <button id="continue" class="hidden">Continue saved game</button>
-          <button id="watch">Watch the merchants trade alone</button>
-        </div>
+        <h3 class="label" data-t="examplesTitle"></h3>
+        <ul id="examples" class="examples"></ul>
+        <p class="fine" data-t="ticketFine"></p>
       </div>
     </section>
 
     <main id="game" class="game hidden">
-      <aside class="col board">
-        <section class="card">
-          <h2>Price board</h2>
-          <table id="prices" class="prices"></table>
-        </section>
-        <section class="card">
-          <h2>Today</h2>
-          <p id="event" class="event"></p>
-          <div id="recap" class="recap"></div>
-          <h3>What you've heard</h3>
-          <ul id="rumors" class="rumors"></ul>
-        </section>
-        <section class="card">
-          <h2>On the quay</h2>
-          <ol id="market" class="market"></ol>
-        </section>
-      </aside>
-
       <section class="col talk">
-        <nav id="stalls" class="stalls"></nav>
-        <section class="card chat">
-          <div id="stallhead" class="stallhead"></div>
+        <nav id="stalls" class="stalls" data-t-aria="stallsLabel"></nav>
+        <article class="sheet entry">
+          <header id="stallhead" class="stallhead"></header>
           <ol id="convo" class="convo" aria-live="polite"></ol>
-          <div id="table" class="table hidden"></div>
+          <div id="table" class="bill hidden"></div>
           <div id="chips" class="chips"></div>
           <div class="say">
-            <textarea id="input" rows="2" placeholder="Say something, e.g. 10 coin for 2 wool"></textarea>
-            <button id="send" class="primary">Say it</button>
+            <label for="input" class="label" data-t="sayLabel"></label>
+            <div class="say-row">
+              <textarea id="input" rows="2" data-t-ph="sayPh" autocomplete="off"></textarea>
+              <button type="button" id="send" class="primary" data-t="send"></button>
+            </div>
+            <p id="preview" class="preview" aria-live="polite"></p>
           </div>
-          <p id="preview" class="preview"></p>
           <div class="row small">
-            <label id="voicebox" class="hidden">Merchants played by <select id="voice"></select></label>
+            <label id="voicebox" class="hidden"><span data-t="voiceLabel"></span> <select id="voice"></select></label>
             <span id="talks" class="talks"></span>
           </div>
-        </section>
+        </article>
       </section>
 
       <aside class="col you">
-        <section class="card">
-          <h2>Your stall</h2>
+        <section class="sheet">
+          <h2 class="head" data-t="youHead"></h2>
           <div id="purse" class="purse"></div>
-          <ul id="mygoods" class="goods"></ul>
+          <table id="mygoods" class="ledger goods"></table>
         </section>
-        <section class="card">
-          <h2>Your contract</h2>
+        <section class="sheet slip">
+          <h2 class="head" data-t="contractHead"></h2>
           <div id="contract"></div>
         </section>
-        <section class="card">
-          <h2>Promises</h2>
+        <section class="sheet">
+          <h2 class="head" data-t="promisesHead"></h2>
           <ul id="promises" class="promises"></ul>
         </section>
-        <section class="card">
+        <section class="sheet closing">
           <div id="standing" class="standing"></div>
-          <button id="endday" class="primary wide">End the day</button>
+          <button type="button" id="endday" class="primary wide"></button>
+        </section>
+      </aside>
+
+      <aside class="col board">
+        <section class="sheet">
+          <h2 class="head" data-t="boardHead"></h2>
+          <table id="prices" class="ledger prices"></table>
+        </section>
+        <section class="sheet">
+          <h2 class="head" data-t="todayHead"></h2>
+          <p id="event" class="event"></p>
+          <div id="recap" class="recap"></div>
+          <h3 class="label" data-t="heardHead"></h3>
+          <ul id="rumors" class="rumors"></ul>
+        </section>
+        <section class="sheet">
+          <h2 class="head" data-t="quayHead"></h2>
+          <ol id="market" class="quaylog"></ol>
         </section>
       </aside>
     </main>
