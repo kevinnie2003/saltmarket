@@ -17,7 +17,7 @@ export async function makeProvider(kind: ProviderKind, opts: { noise?: number; s
 /** Which real providers this process could use, from the environment. */
 export function availableProviders(env: Record<string, string | undefined> = process.env): ProviderKind[] {
   const out: ProviderKind[] = ['mock'];
-  if (env.ANTHROPIC_API_KEY || env.ANTHROPIC_AUTH_TOKEN) out.push('anthropic');
+  if ((env.ANTHROPIC_API_KEY || env.ANTHROPIC_AUTH_TOKEN) && env.SALTMARKET_ANTHROPIC_MODEL) out.push('anthropic');
   if (env.OPENAI_MODEL) out.push('openai');
   return out;
 }

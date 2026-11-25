@@ -10,7 +10,7 @@ export interface AnthropicOptions {
 /**
  * Claude via the official SDK. Configure with env vars:
  *   ANTHROPIC_API_KEY        (or any credential the SDK resolves)
- *   SALTMARKET_ANTHROPIC_MODEL (default claude-opus-5-5)
+ *   SALTMARKET_ANTHROPIC_MODEL (required: the model id to use)
  *   SALTMARKET_ANTHROPIC_EFFORT (default low: a market reply is short)
  */
 export class AnthropicProvider implements LLMProvider {
@@ -24,7 +24,9 @@ export class AnthropicProvider implements LLMProvider {
   constructor(opts: AnthropicOptions = {}) {
     this.sdk = import('@anthropic-ai/sdk').then((m) => m.default);
     this.client = this.sdk.then((SDK) => new SDK(opts.apiKey ? { apiKey: opts.apiKey } : {}));
-    this.model = opts.model ?? process.env.SALTMARKET_ANTHROPIC_MODEL ?? 'claude-opus-5-5';
+    const model = opts.model ?? process.env.SALTMARKET_ANTHROPIC_MODEL;
+    if (!model) throw new Error('Set SALTMARKET_ANTHROPIC_MODEL to the Claude model id to use.');
+    this.model = model;
     this.effort = opts.effort ?? (process.env.SALTMARKET_ANTHROPIC_EFFORT as AnthropicOptions['effort']) ?? 'low';
     this.name = `anthropic:${this.model}`;
   }

@@ -48,7 +48,7 @@ Start a line with a merchant's name (`Marta, ...`) to talk to them without switc
 ### With a real model
 
 ```
-ANTHROPIC_API_KEY=... npm start
+ANTHROPIC_API_KEY=... SALTMARKET_ANTHROPIC_MODEL=<model id> npm start
 ```
 
 This serves the game on http://127.0.0.1:8788 with a small local server that keeps the key on your machine. A **Merchants played by** menu appears under the chat. Pick a model and it does two jobs on each line: it reads what you said into an intent, and it plays the merchant you're talking to, in character. Any OpenAI-compatible endpoint works too, through `OPENAI_BASE_URL`, `OPENAI_API_KEY` and `OPENAI_MODEL`. The server holds no game state; the browser sends it with each line and gets the new state back.

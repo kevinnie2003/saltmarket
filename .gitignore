@@ -1,3 +1,5 @@
 node_modules
 dist
 sim-results
+.env
+*.log
