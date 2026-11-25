@@ -128,14 +128,14 @@ export function propose(state: GameState, me: Merchant, partner: Merchant): Offe
       const o: Offer = { from: me.id, to: partner.id, give: pay.now, get: want };
       if (pay.later) o.later = { give: pay.later, due: Math.min(state.days, state.day + 2) };
       if (offerProblems(state, o).length) continue;
-      if (gain(state, me, o) >= wanted(state, me, o, 0)) return o;
+      if (gain(state, me, o, { honorOwn: honorWeight(me) }) >= wanted(state, me, o, 0)) return o;
     }
   }
-  // Nothing to buy: sell a spare good for coin at a markup.
-  const sell = GOODS.filter((g) => spare(me, g) > 0).sort((a, b) => spare(me, b) * state.prices[b] - spare(me, a) * state.prices[a]);
+  // Nothing to buy: offer a spare good the other stall has none of, at a markup.
+  const sell = GOODS.filter((g) => spare(me, g) > 0 && partner.goods[g] === 0).sort((a, b) => spare(me, b) * state.prices[b] - spare(me, a) * state.prices[a]);
   for (const g of sell) {
     const q = Math.min(spare(me, g), 2);
-    const price = Math.ceil(expectedPrice(state, me, g) * me.taste[g] * q * 1.25 + 1);
+    const price = Math.ceil(expectedPrice(state, me, g) * me.taste[g] * q * 1.15 + 1);
     if (partner.coin < price) continue;
     const o: Offer = { from: me.id, to: partner.id, give: { [g]: q }, get: { coin: price } };
     if (!offerProblems(state, o).length && gain(state, me, o) >= wanted(state, me, o, 0)) return o;
@@ -147,6 +147,8 @@ export function propose(state: GameState, me: Merchant, partner: Merchant): Offe
 function payments(state: GameState, me: Merchant, target: number, buying: Good): { now: Bundle; later?: Bundle }[] {
   const out: { now: Bundle; later?: Bundle }[] = [];
   const coin = Math.ceil(target);
+  // A sly merchant likes to pay later, and pays handsomely, on paper.
+  if (me.personality === 'sly' && state.day + 2 <= state.days) out.push({ now: {}, later: { coin: Math.ceil(target * 1.3) } });
   if (me.coin >= coin) out.push({ now: { coin } });
   const spares = GOODS.filter((g) => g !== buying && spare(me, g) > 0).sort((a, b) => state.prices[b] - state.prices[a]);
   for (const g of spares) {
@@ -251,9 +253,8 @@ export function honor(state: GameState, debtor: Merchant, p: Promise): boolean {
 
 export const MIND_BRAINS: Brains = {
   honor(state, debtor, p) {
-    // The human's promises are settled by the human's own choice in the UI;
-    // the engine treats an absent choice as kept if they can pay.
-    if (debtor.id === HUMAN) return true;
+    // The player decides for themselves; a promise is kept unless they chose to break it.
+    if (debtor.id === HUMAN) return !(state.breaking ?? []).includes(p.id);
     return honor(state, debtor, p);
   },
 };

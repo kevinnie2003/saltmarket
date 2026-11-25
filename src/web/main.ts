@@ -225,7 +225,11 @@ function renderYou(s: GameState): void {
         .map((p) => {
           const other = merchant(s, p.from === HUMAN ? p.to : p.from).name;
           const text = p.from === HUMAN ? `You owe ${other} ${describeBundle(p.bundle)}` : `${other} owes you ${describeBundle(p.bundle)}`;
-          return `<li class="p-${p.status}">${esc(text)}, day ${p.due}${p.status === 'open' ? '' : ` (${p.status})`}</li>`;
+          const choice =
+            p.status === 'open' && p.from === HUMAN
+              ? `<label class="keep"><input type="checkbox" data-promise="${p.id}" ${(s.breaking ?? []).includes(p.id) ? '' : 'checked'} /> keep it</label>`
+              : '';
+          return `<li class="p-${p.status}">${esc(text)}, day ${p.due}${p.status === 'open' ? '' : ` (${p.status})`}${choice}</li>`;
         })
         .join('')
     : '<li class="muted">None. A deal can include a delivery on a later day.</li>';
@@ -438,6 +442,17 @@ export function wire(): void {
     }
   });
   $('endday').addEventListener('click', finishDay);
+  $('promises').addEventListener('change', (e) => {
+    const box = e.target as HTMLInputElement;
+    const id = box.dataset.promise;
+    const s = ui.state;
+    if (!id || !s) return;
+    const set = new Set(s.breaking ?? []);
+    if (box.checked) set.delete(id);
+    else set.add(id);
+    s.breaking = [...set];
+    save();
+  });
   $('voice').addEventListener('change', () => (ui.voice = ($('voice') as HTMLSelectElement).value));
   $('result').addEventListener('click', (e) => {
     const id = (e.target as HTMLElement).id;

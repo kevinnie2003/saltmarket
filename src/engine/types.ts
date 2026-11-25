@@ -121,4 +121,6 @@ export interface GameState {
   trades: { day: number; offer: Offer }[];
   over: boolean;
   nextId: number;
+  /** Promises the player has chosen not to keep, by id. */
+  breaking?: string[];
 }

@@ -159,3 +159,28 @@ describe('web client', () => {
     }
   });
 });
+
+describe('promises the player makes', () => {
+  it('can be broken on purpose, and the merchant remembers', async () => {
+    const web = await boot();
+    $<HTMLInputElement>('seed').value = '5';
+    $('start').click();
+    const ui = web.getUI();
+    const pell = ui.state!.merchants.find((m) => m.name === 'Pell Dorran')!;
+    (document.querySelector(`[data-stall=${pell.id}]`) as HTMLElement).click();
+    type("give me 1 wool now and I'll pay you 8 coin tomorrow");
+    enter();
+    await until(() => ui.state!.promises.length > 0 || !$('table').classList.contains('hidden'));
+    if (!ui.state!.promises.length) ($('accept') as HTMLButtonElement).click();
+    await until(() => ui.state!.promises.length > 0);
+    const box = document.querySelector('#promises input[data-promise]') as HTMLInputElement;
+    expect(box.checked).toBe(true);
+    box.checked = false;
+    box.dispatchEvent(new Event('change', { bubbles: true }));
+    $('endday').click();
+    const p = ui.state!.promises[0];
+    expect(p.status).toBe('broken');
+    expect(ui.state!.merchants.find((m) => m.id === pell.id)!.trust.you).toBeLessThan(0.3);
+    expect($('stalls').textContent).toMatch(/doesn.t trust you/);
+  });
+});
