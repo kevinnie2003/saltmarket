@@ -107,6 +107,8 @@ export class LLMMerchant {
       if (problems.length) throw new Error(`the counter isn't possible: ${problems.join('; ')}`);
       if (gain(state, me, o) < 0) throw new Error('that counter would leave you worse off by your own books');
       state.pending[me.id] = o;
+      if (intent.kind === 'offer' && onTable) (state.asked ??= {})[me.id] = onTable;
+      else delete state.asked?.[me.id];
       result = { say, offer: o, spent: true };
     } else {
       result = { say, spent: true };

@@ -117,6 +117,8 @@ export interface GameState {
   talksLeft: number;
   /** An offer an AI merchant has put to the human, by merchant id. */
   pending: Record<string, Offer | undefined>;
+  /** The player's own last offer at a stall, while the merchant's counter to it is on the table. */
+  asked?: Record<string, Offer | undefined>;
   /** Trades made, for stats. */
   trades: { day: number; offer: Offer }[];
   over: boolean;

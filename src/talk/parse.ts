@@ -1,7 +1,7 @@
 // Turns what the player types at a stall into an intent. Rule based, so the
 // game works offline; the LLM interpreter produces the same Intent shape.
 import { HUMAN, merchant } from '../engine/game.js';
-import { GOODS, type Bundle, type GameState, type Good } from '../engine/types.js';
+import { GOODS, type Bundle, type GameState, type Good, type Offer } from '../engine/types.js';
 
 export type Intent =
   | { kind: 'offer'; give: Bundle; get: Bundle; later?: { give?: Bundle; get?: Bundle; due: number } }
@@ -121,7 +121,7 @@ function firstGood(text: string): { good: Good; qty: number } | null {
 /** Pull a "... on day 5" / "tomorrow" delivery clause out of the text. */
 function readLater(state: GameState, text: string): { rest: string; later?: { give?: Bundle; get?: Bundle; due: number } } {
   const when = String.raw`(?:on\s+day\s+(\d+)|tomorrow|in\s+(\w+)\s+days?|(?:at|by)\s+(?:the\s+)?(?:close|end))`;
-  const mine = new RegExp(String.raw`(?:,|\band\b|\bthen\b)?\s*(?:i'?ll|i\s+will|i\s+can|i'?d)\s+(?:pay|give|deliver|bring|send)\s+(?:you\s+)?(?:the\s+rest,?\s*)?(.+?)\s+${when}`);
+  const mine = new RegExp(String.raw`(?:,|\band\b|\bthen\b)?\s*(?:i'?ll|i\s+will|i\s+can|i'?d|i)\s+(?:pay|give|deliver|bring|send)\s+(?:you\s+)?(?:the\s+rest,?\s*)?(.+?)\s+${when}`);
   const theirs = new RegExp(String.raw`(?:,|\band\b|\bthen\b)?\s*(?:you\s+(?:can\s+|could\s+)?(?:pay|give|deliver|bring|send)(?:\s+me)?)\s+(.+?)\s+${when}`);
   const rest = new RegExp(String.raw`\b(?:and|plus|then)\s+(?:the\s+rest\s*,?\s*)?((?:\d+|\w+)\s*(?:coin|coins|salt|amber|dye|wool|spice|iron)?)\s+${when}`);
   for (const [re, side] of [
@@ -156,7 +156,7 @@ function readIntent(state: GameState, text: string, to?: string): Intent {
   if (!text) return { kind: 'hello' };
   if (/^(deal|yes|yep|yeah|ok|okay|agreed|accept(ed)?|done|sure|fine|sold|shake on it|you'?ve got a deal|i'?ll take (it|that)|sounds good|let'?s do it)\b/.test(text) && !/\bfor\b|\d/.test(text))
     return { kind: 'accept' };
-  if (/^(no|nope|nah|pass|reject|not interested|no deal|no thanks|too (much|high|steep|dear|expensive|pricey|rich)|that'?s too (much|high|steep|dear|expensive)|forget it|never mind)\b/.test(text) && !/\bfor\b/.test(text))
+  if (/^(no|nope|nah|pass|reject|not interested|no deal|no thanks|too (much|high|steep|dear|expensive|pricey|rich)|that'?s too (much|high|steep|dear|expensive)|forget it|never mind|bye|goodbye|good ?bye|see you|farewell|later|thanks|thank you|cheers)\b/.test(text) && !/\bfor\b/.test(text))
     return { kind: 'reject' };
   if (/\b(news|rumou?rs?|gossip|heard anything|hear anything|what'?s going on|anything new|what'?s the word)\b/.test(text)) return { kind: 'news' };
   if (/\b(what do you (need|want)(?! for)|what are you (after|looking for|buying)|need anything|want anything|what'?s on your list|what are you short)\b/.test(text))
@@ -205,12 +205,20 @@ function readBump(state: GameState, text: string, to?: string): Intent | null {
   if (!o) return null;
   const n = Number(m[1]);
   // From the player's side: the merchant's `get` is what the player gives.
-  const give = { ...o.get };
-  const get = { ...o.give };
+  let give = { ...o.get };
+  let get = { ...o.give };
+  let later: Offer['later'] = o.later ? { give: o.later.get, get: o.later.give, due: o.later.due } : undefined;
+  // After a counter, a new figure most likely re-prices the player's own terms,
+  // as long as the coin sits on the same side in both.
+  const mine = state.asked?.[to];
+  if (mine && ((give.coin && mine.give.coin) || (get.coin && mine.get.coin))) {
+    give = { ...mine.give };
+    get = { ...mine.get };
+    later = mine.later ? { ...mine.later } : undefined;
+  }
   if (give.coin) give.coin = n;
   else if (get.coin) get.coin = n;
   else return null;
-  const later = o.later ? { give: o.later.get, get: o.later.give, due: o.later.due } : undefined;
   return { kind: 'offer', give, get, later };
 }
 
@@ -247,7 +255,7 @@ function readOffer(state: GameState, text0: string, to?: string): Intent | null 
     }
   } else {
     // "I'll pay 20 coin on day 5 for nothing" makes no sense, but "sell you 3 salt" alone is a price ask.
-    const sell = text.match(/^(?:i'?ll |i can |i could )?(?:sell|give|offer)\s+(?:you\s+)?(.+)$/);
+    const sell = text.match(/^(?:i'?ll |i can |i could )?(?:sell|give|offer)\s+(?!me\b)(?:you\s+)?(.+)$/);
     if (sell && !later) {
       const b = readBundle(sell[1], null);
       const g = b && GOODS.find((x) => (b[x] ?? 0) > 0);

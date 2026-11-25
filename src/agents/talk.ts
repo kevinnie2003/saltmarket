@@ -30,6 +30,7 @@ export function talk(state: GameState, to: string, intent: Intent): TalkResult {
   if (r.spent) state.talksLeft--;
   if (r.offer) state.pending[m.id] = r.offer;
   else if (r.traded || intent.kind === 'reject') delete state.pending[m.id];
+  if (r.traded || intent.kind === 'reject' || (r.offer && intent.kind !== 'offer')) delete state.asked?.[m.id];
   if (r.spent) log(state, 'say', `${m.name}: ${r.say}`, [m.id, HUMAN], true);
   return r;
 }
@@ -48,7 +49,10 @@ function answer(state: GameState, m: Merchant, intent: Intent): TalkResult {
         executeOffer(state, o);
         return { say: v.say, traded: true, spent: true };
       }
-      if (v.kind === 'counter') return { say: `${v.say} ${show(v.offer)}.`, offer: v.offer, spent: true };
+      if (v.kind === 'counter') {
+        (state.asked ??= {})[m.id] = o;
+        return { say: `${v.say} ${show(v.offer)}.`, offer: v.offer, spent: true };
+      }
       return { say: v.say, spent: true };
     }
     case 'accept': {
@@ -63,7 +67,8 @@ function answer(state: GameState, m: Merchant, intent: Intent): TalkResult {
       return { say: line(m.personality, 'accept', pick('a')), traded: true, spent: true };
     }
     case 'reject':
-      return { say: line(m.personality, 'bye', pick('b')), spent: true };
+      // Walking away with nothing on the table costs no talk.
+      return { say: line(m.personality, 'bye', pick('b')), spent: !!state.pending[m.id] };
     case 'price': {
       const q = quote(state, m, you, intent.good, intent.qty);
       if (!q) return { say: line(m.personality, 'notForSale', pick('n')), spent: true };

@@ -263,7 +263,7 @@ export function describeIntent(s: GameState, i: Intent): string {
     case 'accept':
       return s.pending[ui.stall ?? ''] ? 'Accept the deal on the table' : 'Accept (there is nothing on the table)';
     case 'reject':
-      return 'Turn it down';
+      return s.pending[ui.stall ?? ''] ? 'Turn down the deal on the table' : 'Say goodbye';
     case 'price':
       return `Ask their price for ${i.qty} ${i.good}`;
     case 'bid':

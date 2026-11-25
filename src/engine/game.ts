@@ -234,6 +234,10 @@ export function executeOffer(state: GameState, o: Offer): void {
   state.trades.push({ day: state.day, offer: structuredClone(o) });
   delete state.pending[a.id];
   delete state.pending[b.id];
+  if (state.asked) {
+    delete state.asked[a.id];
+    delete state.asked[b.id];
+  }
   log(state, 'trade', `${a.name} and ${b.name} trade: ${describeOffer(state, o, '')}.`, [a.id, b.id]);
 }
 
@@ -314,6 +318,7 @@ export function settlePromises(state: GameState, brains: Brains): void {
 export function advanceDay(state: GameState, brains: Brains): void {
   if (state.over) return;
   state.pending = {};
+  state.asked = {};
   if (state.day >= state.days) {
     closeMarket(state);
     return;

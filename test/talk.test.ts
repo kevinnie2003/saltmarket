@@ -41,6 +41,8 @@ describe('reading what the player says', () => {
     expect(parseTalk(g, 'any news?', 'm1').intent.kind).toBe('news');
     expect(parseTalk(g, 'deal', 'm1').intent.kind).toBe('accept');
     expect(parseTalk(g, 'no thanks', 'm1').intent.kind).toBe('reject');
+    expect(parseTalk(g, 'bye!', 'm1').intent.kind).toBe('reject');
+    expect(parseTalk(g, 'thanks', 'm1').intent.kind).toBe('reject');
     expect(parseTalk(g, 'morning!', 'm1').intent.kind).toBe('hello');
     expect(parseTalk(g, 'the gulls are loud', 'm1').intent.kind).toBe('unknown');
   });
@@ -51,6 +53,26 @@ describe('reading what the player says', () => {
     expect(parseTalk(g, 'ok 10 then', 'm1').intent).toMatchObject({ kind: 'offer', give: { coin: 10 } });
     delete g.pending.m1;
     expect(parseTalk(g, 'how about 9', 'm1').intent.kind).toBe('unknown');
+  });
+
+  it('after a counter, a new figure re-prices the player\'s own terms', () => {
+    const g = game();
+    g.pending.m1 = { from: 'm1', to: HUMAN, give: { wool: 1 }, get: { coin: 6 } };
+    g.asked = { m1: { from: HUMAN, to: 'm1', give: { coin: 6 }, get: { wool: 2 } } };
+    expect(parseTalk(g, 'how about 8', 'm1').intent).toMatchObject({ kind: 'offer', give: { coin: 8 }, get: { wool: 2 } });
+    // When the counter added coin the player never offered, the figure goes on the counter.
+    g.pending.m1 = { from: 'm1', to: HUMAN, give: { wool: 2 }, get: { dye: 1, coin: 3 } };
+    g.asked = { m1: { from: HUMAN, to: 'm1', give: { dye: 1 }, get: { wool: 2 } } };
+    expect(parseTalk(g, 'how about 2', 'm1').intent).toMatchObject({ kind: 'offer', give: { dye: 1, coin: 2 }, get: { wool: 2 } });
+  });
+
+  it('reads "give me ... now and I pay ... later" as a deal, not a sale', () => {
+    const g = game();
+    expect(parseTalk(g, 'give me 2 wool now and I pay 30 on day 4', 'm1').intent).toMatchObject({
+      kind: 'offer',
+      get: { wool: 2 },
+      later: { give: { coin: 30 }, due: 4 },
+    });
   });
 
   it('reads everyday ways of asking for goods', () => {
