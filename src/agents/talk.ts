@@ -1,5 +1,7 @@
 // A merchant's answer to what the player says at their stall.
 import { HUMAN, executeOffer, log, merchant, offerProblems, pitch } from '../engine/game.js';
+import { langOf } from '../i18n/lang.js';
+import { logWords, rumorText, talkWords } from '../i18n/words.js';
 import type { GameState, Merchant, Offer } from '../engine/types.js';
 import type { Intent } from '../talk/parse.js';
 import { admitNeeds, bid, describeNeeds, propose, quote, respond, roll, shareNews } from './mind.js';
@@ -22,28 +24,32 @@ export function offerFromIntent(state: GameState, to: string, i: Extract<Intent,
 
 /** Reply to the player at `to`'s stall. Uses one of the day's talks when it reaches the merchant. */
 export function talk(state: GameState, to: string, intent: Intent): TalkResult {
-  if (state.over) return { say: 'The market has closed.', spent: false };
-  if (state.talksLeft <= 0) return { say: 'The bell has rung. Trading talk is done for today; end the day to carry on.', spent: false };
+  const w = talkWords(langOf(state));
+  if (state.over) return { say: w.closed, spent: false };
+  if (state.talksLeft <= 0) return { say: w.bell, spent: false };
   const m = merchant(state, to);
-  if (m.id === HUMAN) return { say: 'Talking to yourself won’t move any goods.', spent: false };
+  if (m.id === HUMAN) return { say: w.self, spent: false };
   const r = answer(state, m, intent);
   if (r.spent) state.talksLeft--;
   if (r.offer) state.pending[m.id] = r.offer;
   else if (r.traded || intent.kind === 'reject') delete state.pending[m.id];
   if (r.traded || intent.kind === 'reject' || (r.offer && intent.kind !== 'offer')) delete state.asked?.[m.id];
-  if (r.spent) log(state, 'say', `${m.name}: ${r.say}`, [m.id, HUMAN], true);
+  if (r.spent) log(state, 'say', logWords(langOf(state)).says(m.name, r.say), [m.id, HUMAN], true);
   return r;
 }
 
 function answer(state: GameState, m: Merchant, intent: Intent): TalkResult {
   const you = merchant(state, HUMAN);
+  const lang = langOf(state);
+  const w = talkWords(lang);
   const pick = (k: string) => roll(state, m.id, state.day, state.talksLeft, k) * 1000;
-  const show = (o: Offer) => pitch(state, o);
+  const say = (moment: Parameters<typeof line>[1], k: string) => line(m.personality, moment, pick(k), lang);
+  const show = (o: Offer) => pitch(state, o, lang);
   switch (intent.kind) {
     case 'offer': {
       const o = offerFromIntent(state, m.id, intent);
-      const problems = offerProblems(state, o);
-      if (problems.length) return { say: `That won’t work: ${problems.join('; ')}.`, spent: false };
+      const problems = offerProblems(state, o, lang);
+      if (problems.length) return { say: w.wontWork(problems.join(lang === 'zh' ? '；' : '; ')), spent: false };
       const v = respond(state, m, o);
       if (v.kind === 'accept') {
         executeOffer(state, o);
@@ -51,57 +57,57 @@ function answer(state: GameState, m: Merchant, intent: Intent): TalkResult {
       }
       if (v.kind === 'counter') {
         (state.asked ??= {})[m.id] = o;
-        return { say: `${v.say} ${show(v.offer)}.`, offer: v.offer, spent: true };
+        return { say: w.withDeal(v.say, show(v.offer)), offer: v.offer, spent: true };
       }
       return { say: v.say, spent: true };
     }
     case 'accept': {
       const o = state.pending[m.id];
-      if (!o) return { say: 'Accept what? I haven’t offered you anything yet.', spent: false };
-      const problems = offerProblems(state, o);
+      if (!o) return { say: w.acceptWhat, spent: false };
+      const problems = offerProblems(state, o, lang);
       if (problems.length) {
         delete state.pending[m.id];
-        return { say: `That deal can’t go through any more: ${problems.join('; ')}.`, spent: true };
+        return { say: w.cantGoThrough(problems.join(lang === 'zh' ? '；' : '; ')), spent: true };
       }
       executeOffer(state, o);
-      return { say: line(m.personality, 'accept', pick('a')), traded: true, spent: true };
+      return { say: say('accept', 'a'), traded: true, spent: true };
     }
     case 'reject':
       // Walking away with nothing on the table costs no talk.
-      return { say: line(m.personality, 'bye', pick('b')), spent: !!state.pending[m.id] };
+      return { say: say('bye', 'b'), spent: !!state.pending[m.id] };
     case 'price': {
       const q = quote(state, m, you, intent.good, intent.qty);
-      if (!q) return { say: line(m.personality, 'notForSale', pick('n')), spent: true };
+      if (!q) return { say: say('notForSale', 'n'), spent: true };
       const n = q.give[intent.good] ?? 0;
-      const few = n < intent.qty ? `I can only spare ${n}. ` : '';
-      return { say: `${few}${line(m.personality, 'quote', pick('q'))} ${show(q)}.`, offer: q, spent: true };
+      const few = n < intent.qty ? w.onlySpare(n) : '';
+      return { say: few + w.withDeal(say('quote', 'q'), show(q)), offer: q, spent: true };
     }
     case 'bid': {
-      if (you.goods[intent.good] <= 0) return { say: `You don’t have any ${intent.good} to sell.`, spent: false };
+      if (you.goods[intent.good] <= 0) return { say: w.noneToSell(intent.good), spent: false };
       const b = bid(state, m, you, intent.good, intent.qty);
-      if (!b) return { say: m.coin < 1 ? line(m.personality, 'cantAfford', pick('c')) : `I don’t need ${intent.good}.`, spent: true };
-      return { say: `${line(m.personality, 'bid', pick('q'))} ${show(b)}.`, offer: b, spent: true };
+      if (!b) return { say: m.coin < 1 ? say('cantAfford', 'c') : w.dontNeed(intent.good), spent: true };
+      return { say: w.withDeal(say('bid', 'q'), show(b)), offer: b, spent: true };
     }
     case 'needs': {
       const needs = admitNeeds(state, m, you);
       const o = propose(state, m, you);
-      const tail = o ? ` ${line(m.personality, 'offer', pick('o'))} ${show(o)}.` : '';
-      return { say: `${line(m.personality, 'want', pick('w'))} ${describeNeeds(needs)}.${tail}`, offer: o ?? undefined, spent: true };
+      const tail = o ? w.withDeal(say('offer', 'o'), show(o)) : '';
+      return { say: w.then(w.sentence(say('want', 'w'), describeNeeds(needs, lang)), tail).trim(), offer: o ?? undefined, spent: true };
     }
     case 'news': {
       const n = shareNews(state, m, you);
-      if (n.rumorId) log(state, 'rumor', `${m.name} says: ${state.rumors.find((r) => r.id === n.rumorId)!.text}`, [m.id, HUMAN], true);
+      if (n.rumorId) {
+        const r = state.rumors.find((x) => x.id === n.rumorId)!;
+        log(state, 'rumor', logWords(lang).heardFrom(m.name, rumorText(r.kind, r.goods, r.day, lang)), [m.id, HUMAN], true, r.id);
+      }
       return { say: n.say, spent: true };
     }
     case 'hello': {
       const o = propose(state, m, you);
-      const tail = o ? ` ${line(m.personality, 'offer', pick('o'))} ${show(o)}.` : '';
-      return { say: `${line(m.personality, 'greet', pick('g'))}${tail}`, offer: o ?? undefined, spent: true };
+      const tail = o ? w.withDeal(say('offer', 'o'), show(o)) : '';
+      return { say: w.then(say('greet', 'g'), tail).trim(), offer: o ?? undefined, spent: true };
     }
     default:
-      return {
-        say: 'I didn’t follow that. Try "3 salt for 2 amber", "how much for your spice?", "what do you need?" or "any news?".',
-        spent: false,
-      };
+      return { say: w.didntFollow, spent: false };
   }
 }

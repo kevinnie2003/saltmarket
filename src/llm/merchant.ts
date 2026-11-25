@@ -10,7 +10,9 @@ import { talk, offerFromIntent, type TalkResult } from '../agents/talk.js';
 import type { Intent } from '../talk/parse.js';
 import { extractJson } from './parse.js';
 import { ProviderError, UsageMeter, type ChatMessage, type LLMProvider } from './provider.js';
-import { RULES, books, bundleJson, offerLine } from './situation.js';
+import { LANGUAGE, RULES, books, bundleJson, offerLine } from './situation.js';
+import { langOf } from '../i18n/lang.js';
+import { logWords } from '../i18n/words.js';
 
 export interface MerchantMeta {
   kind: 'merchant';
@@ -54,7 +56,7 @@ export class LLMMerchant {
     if (!advice.spent) return { ...talk(state, to, intent), source: 'rules' };
 
     const onTable = intent.kind === 'offer' ? offerFromIntent(state, to, intent) : intent.kind === 'accept' ? state.pending[to] : undefined;
-    const system = `${RULES}\n\nYou are ${me.name}, a merchant at the harbour market. ${PERSONA[me.personality] ?? ''}\n${FORMAT}`;
+    const system = `${RULES}\n\nYou are ${me.name}, a merchant at the harbour market. ${PERSONA[me.personality] ?? ''}\n${FORMAT}\n${LANGUAGE[langOf(state)]}`;
     const messages: ChatMessage[] = [{ role: 'user', content: prompt(state, me, intent, said, advice, onTable) }];
     let lastError = '';
     for (let attempt = 0; attempt <= this.maxRepairs; attempt++) {
@@ -118,7 +120,7 @@ export class LLMMerchant {
     me.haggle = { ...t.haggle };
     me.mood = { ...t.mood };
     state.talksLeft--;
-    log(state, 'say', `${me.name}: ${say}`, [me.id, HUMAN], true);
+    log(state, 'say', logWords(langOf(state)).says(me.name, say), [me.id, HUMAN], true);
     void advice;
     return { ...result, source: 'llm' };
   }
@@ -126,7 +128,7 @@ export class LLMMerchant {
 
 function relabelLast(state: GameState, me: Merchant, say: string): void {
   const last = state.log.at(-1);
-  if (last && last.kind === 'say' && last.who?.[0] === me.id) last.text = `${me.name}: ${say}`;
+  if (last && last.kind === 'say' && last.who?.[0] === me.id) last.text = logWords(langOf(state)).says(me.name, say);
 }
 
 function prompt(state: GameState, me: Merchant, intent: Intent, said: string, advice: TalkResult, onTable: Offer | undefined): string {

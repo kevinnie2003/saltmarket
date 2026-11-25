@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GOODS, type GameState } from '../engine/types.js';
+import { asLang } from '../i18n/lang.js';
 import { availableProviders, makeProvider, type ProviderKind } from '../llm/factory.js';
 import { LLMInterpreter } from '../llm/interpreter.js';
 import { LLMMerchant } from '../llm/merchant.js';
@@ -52,6 +53,7 @@ export function stateFrom(raw: unknown): GameState {
   }
   if (!s.prices || GOODS.some((g) => typeof s.prices[g] !== 'number')) throw new Error('bad prices');
   if (!Array.isArray(s.promises) || !Array.isArray(s.rumors) || !Array.isArray(s.events) || !Array.isArray(s.log)) throw new Error('bad lists');
+  if (s.lang !== undefined && s.lang !== 'en' && s.lang !== 'zh') throw new Error('bad lang');
   return structuredClone(s);
 }
 
@@ -78,6 +80,8 @@ export async function handleApi(req: IncomingMessage, res: ServerResponse, url: 
   }
   const text = String(body.text ?? '').slice(0, 1000);
   if (!text.trim()) return json(res, 400, { error: 'missing text' });
+  // The language the player is reading in; new lines are written in it.
+  if (body.lang !== undefined) state.lang = asLang(body.lang);
   const stall = typeof body.stall === 'string' && state.merchants.some((m) => m.id === body.stall) ? body.stall : undefined;
   const llm = await makeProvider(kind, { seed: state.day * 100 + state.talksLeft });
   const reply = await stallTalk(state, text, stall, { interpreter: new LLMInterpreter(llm, meter), merchant: new LLMMerchant(llm, meter) });

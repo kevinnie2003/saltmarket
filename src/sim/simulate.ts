@@ -1,5 +1,6 @@
 import { HUMAN, standings } from '../engine/game.js';
 import type { GameState } from '../engine/types.js';
+import type { Lang } from '../i18n/lang.js';
 import { endDay, newGame } from '../agents/session.js';
 import type { LLMMerchant } from '../llm/merchant.js';
 import { playDay, type BotKind } from './bot.js';
@@ -11,6 +12,8 @@ export interface SimOptions {
   rivals?: number;
   days?: number;
   voice?: LLMMerchant;
+  /** The language the market's text is written in. The numbers are the same in every language. */
+  lang?: Lang;
 }
 
 export interface SeatStats {
@@ -32,7 +35,7 @@ export interface SimReport {
 }
 
 export async function playGame(seed: number, o: SimOptions): Promise<GameState> {
-  const state = newGame({ seed, noHuman: o.bot === 'none', rivals: o.rivals ?? (o.bot === 'none' ? 4 : 3), days: o.days, talkPerDay: 6 });
+  const state = newGame({ seed, noHuman: o.bot === 'none', rivals: o.rivals ?? (o.bot === 'none' ? 4 : 3), days: o.days, talkPerDay: 6, lang: o.lang });
   while (!state.over) {
     if (o.bot !== 'none') await playDay(state, o.bot, o.voice);
     endDay(state);

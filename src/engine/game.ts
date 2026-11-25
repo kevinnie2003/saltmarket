@@ -1,7 +1,11 @@
 // Game state and the rules that move it: trades, promises, days and the close.
+import { asLang, langOf, type Lang } from '../i18n/lang.js';
+import { bundleText, eventText, fmtCoin, logWords, offerText, pitchText, problemWords, signed } from '../i18n/words.js';
 import { BASE_PRICE, RIVALS, makeMerchant, makeRumor, makeSchedule, round2 } from './market.js';
 import { Rng, hashSeed } from './rng.js';
 import { ASSETS, GOODS, type Asset, type Bundle, type GameState, type Good, type LogEntry, type Merchant, type Offer, type Promise } from './types.js';
+
+export { fmtCoin, signed };
 
 export const HUMAN = 'you';
 
@@ -13,6 +17,8 @@ export interface GameOptions {
   playerName?: string;
   /** All seats played by AI (for simulations). */
   noHuman?: boolean;
+  /** The language the market's text is written in. Never changes the numbers. */
+  lang?: Lang;
 }
 
 /** Decisions the engine needs from whoever plays a merchant. */
@@ -63,7 +69,7 @@ export function createGame(opts: GameOptions = {}): GameState {
     openingPrices: { ...prices },
     merchants,
     promises: [],
-    events: makeSchedule(rng, days),
+    events: makeSchedule(rng, days, asLang(opts.lang)),
     rumors: [],
     log: [],
     talkPerDay: clamp(opts.talkPerDay ?? 6, 1, 20),
@@ -72,6 +78,7 @@ export function createGame(opts: GameOptions = {}): GameState {
     trades: [],
     over: false,
     nextId: 1,
+    lang: asLang(opts.lang),
   };
   state.rng = rng.state;
   openDay(state, ALWAYS_HONOR);
@@ -132,51 +139,23 @@ export function marketValue(state: GameState, b: Bundle | undefined): number {
   return v;
 }
 
-export function describeBundle(b: Bundle | undefined): string {
-  if (!b || isEmpty(b)) return 'nothing';
-  const parts: string[] = [];
-  for (const g of GOODS) if (b[g]) parts.push(`${b[g]} ${g}`);
-  if (b.coin) parts.push(`${fmtCoin(b.coin)} coin`);
-  return parts.length > 1 ? `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}` : parts[0];
+export function describeBundle(b: Bundle | undefined, lang: Lang = 'en'): string {
+  return bundleText(b, lang);
 }
 
-export function fmtCoin(n: number): string {
-  return Number.isInteger(n) ? String(n) : n.toFixed(1);
+/** A merchant's name in a line of text; the player is "You" / "你". */
+export function nameIn(state: GameState, id: string, lang: Lang = langOf(state)): string {
+  if (id === HUMAN) return lang === 'zh' ? logWords('zh').youName : merchant(state, id).name;
+  return merchant(state, id).name;
 }
 
-export function describeOffer(state: GameState, o: Offer, viewer = o.from): string {
-  const who = (id: string) => (id === viewer ? 'I' : id === HUMAN ? 'you' : merchant(state, id).name);
-  const parts: string[] = [];
-  if (!isEmpty(o.give) || !isEmpty(o.get)) {
-    if (isEmpty(o.get)) parts.push(`${who(o.from)} give${s(o.from, viewer)} ${describeBundle(o.give)}`);
-    else if (isEmpty(o.give)) parts.push(`${who(o.to)} give${s(o.to, viewer)} ${describeBundle(o.get)}`);
-    else if (viewer !== o.from && viewer !== o.to) parts.push(`${who(o.from)} give${s(o.from, viewer)} ${describeBundle(o.give)} and ${who(o.to)} give${s(o.to, viewer)} ${describeBundle(o.get)}`);
-    else parts.push(`${describeBundle(viewer === o.from ? o.give : o.get)} for ${describeBundle(viewer === o.from ? o.get : o.give)}`);
-  }
-  if (o.later) {
-    if (!isEmpty(o.later.give)) parts.push(`${who(o.from)} deliver${s(o.from, viewer)} ${describeBundle(o.later.give)} on day ${o.later.due}`);
-    if (!isEmpty(o.later.get)) parts.push(`${who(o.to)} deliver${s(o.to, viewer)} ${describeBundle(o.later.get)} on day ${o.later.due}`);
-  }
-  return parts.join(', then ') || 'nothing';
+export function describeOffer(state: GameState, o: Offer, viewer = o.from, lang: Lang = langOf(state)): string {
+  return offerText(o, lang, (id) => merchant(state, id).name, HUMAN, viewer);
 }
 
 /** How a merchant puts a deal to the person they're talking to. */
-export function pitch(state: GameState, o: Offer): string {
-  const parts: string[] = [];
-  const give = !isEmpty(o.give);
-  const get = !isEmpty(o.get);
-  if (give && get) parts.push(`I give ${describeBundle(o.give)} for your ${describeBundle(o.get)}`);
-  else if (give) parts.push(`I give you ${describeBundle(o.give)}`);
-  else if (get) parts.push(`you give me ${describeBundle(o.get)}`);
-  if (o.later) {
-    if (!isEmpty(o.later.give)) parts.push(`I deliver ${describeBundle(o.later.give)} on day ${o.later.due}`);
-    if (!isEmpty(o.later.get)) parts.push(`you deliver ${describeBundle(o.later.get)} on day ${o.later.due}`);
-  }
-  return parts.join(', and ') || 'nothing';
-}
-
-function s(id: string, viewer: string): string {
-  return id === viewer || id === HUMAN ? '' : 's';
+export function pitch(state: GameState, o: Offer, lang: Lang = langOf(state)): string {
+  return pitchText(o, lang);
 }
 
 /** The same deal seen from the other side. */
@@ -192,29 +171,31 @@ export function flip(o: Offer): Offer {
 
 // ---------- trades ----------
 
-export function offerProblems(state: GameState, o: Offer): string[] {
+/** What stops a deal, worded in `lang` (English unless asked). Empty when it can go through. */
+export function offerProblems(state: GameState, o: Offer, lang: Lang = 'en'): string[] {
+  const w = problemWords(lang);
   const out: string[] = [];
-  if (state.over) return ['the market has closed'];
+  if (state.over) return [w.closed];
   const a = state.merchants.find((m) => m.id === o.from);
   const b = state.merchants.find((m) => m.id === o.to);
-  if (!a || !b) return ['unknown merchant'];
-  if (a.id === b.id) return ['a merchant cannot trade with themselves'];
+  if (!a || !b) return [w.unknownMerchant];
+  if (a.id === b.id) return [w.self];
   for (const part of [o.give, o.get, o.later?.give, o.later?.get]) {
     if (!part) continue;
     for (const [k, v] of Object.entries(part)) {
-      if (!(ASSETS as readonly string[]).includes(k)) out.push(`unknown good "${k}"`);
-      else if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) out.push(`bad amount for ${k}`);
-      else if (k !== 'coin' && !Number.isInteger(v)) out.push(`${k} comes in whole units`);
+      if (!(ASSETS as readonly string[]).includes(k)) out.push(w.unknownGood(k));
+      else if (typeof v !== 'number' || !Number.isFinite(v) || v < 0) out.push(w.badAmount(k));
+      else if (k !== 'coin' && !Number.isInteger(v)) out.push(w.whole(k));
     }
   }
   if (out.length) return out;
-  if (isEmpty(o.give) && isEmpty(o.get) && isEmpty(o.later?.give) && isEmpty(o.later?.get)) out.push('the deal is empty');
-  const lacks = (m: Merchant, x: Bundle) => (m.id === HUMAN ? `you don't have ${describeBundle(x)}` : `${m.name} doesn't have ${describeBundle(x)}`);
+  if (isEmpty(o.give) && isEmpty(o.get) && isEmpty(o.later?.give) && isEmpty(o.later?.get)) out.push(w.empty);
+  const lacks = (m: Merchant, x: Bundle) => (m.id === HUMAN ? w.youLack(describeBundle(x, lang)) : w.theyLack(m.name, describeBundle(x, lang)));
   if (!has(a, o.give)) out.push(lacks(a, o.give));
   if (!has(b, o.get)) out.push(lacks(b, o.get));
   if (o.later) {
-    if (!Number.isInteger(o.later.due) || o.later.due <= state.day) out.push('a later delivery must be due on a later day');
-    else if (o.later.due > state.days) out.push(`the market closes after day ${state.days}`);
+    if (!Number.isInteger(o.later.due) || o.later.due <= state.day) out.push(w.laterDay);
+    else if (o.later.due > state.days) out.push(w.closesAfter(state.days));
   }
   return out;
 }
@@ -238,7 +219,8 @@ export function executeOffer(state: GameState, o: Offer): void {
     delete state.asked[a.id];
     delete state.asked[b.id];
   }
-  log(state, 'trade', `${a.name} and ${b.name} trade: ${describeOffer(state, o, '')}.`, [a.id, b.id]);
+  const lang = langOf(state);
+  log(state, 'trade', logWords(lang).trade(nameIn(state, a.id, lang), nameIn(state, b.id, lang), describeOffer(state, o, '', lang)), [a.id, b.id]);
 }
 
 function addPromise(state: GameState, from: string, to: string, bundle: Bundle, due: number): void {
@@ -247,14 +229,17 @@ function addPromise(state: GameState, from: string, to: string, bundle: Bundle, 
 
 // ---------- days ----------
 
-export function log(state: GameState, kind: LogEntry['kind'], text: string, who?: string[], priv?: boolean): void {
-  state.log.push({ day: state.day, kind, text, who, private: priv || undefined });
+export function log(state: GameState, kind: LogEntry['kind'], text: string, who?: string[], priv?: boolean, rumor?: string): void {
+  const e: LogEntry = { day: state.day, kind, text, who, private: priv || undefined };
+  if (rumor) e.rumor = rumor;
+  state.log.push(e);
 }
 
 /** Apply today's event, settle promises due today, and spread rumours about tomorrow. */
 export function openDay(state: GameState, brains: Brains): void {
   const rng = new Rng(state.rng);
-  log(state, 'day', `Day ${state.day} of ${state.days}.`);
+  const lang = langOf(state);
+  log(state, 'day', logWords(lang).dayOf(state.day, state.days));
   if (state.day > 1) {
     for (const g of GOODS) {
       let p = state.prices[g];
@@ -266,7 +251,7 @@ export function openDay(state: GameState, brains: Brains): void {
   const ev = state.events.find((e) => e.day === state.day);
   if (ev) {
     for (const [g, m] of Object.entries(ev.effect)) state.prices[g as Good] = round2(state.prices[g as Good] * (m as number));
-    log(state, 'event', ev.text);
+    log(state, 'event', eventText(ev.kind, Object.keys(ev.effect) as Good[], lang));
   }
   for (const m of state.merchants) {
     m.haggle = {};
@@ -277,10 +262,10 @@ export function openDay(state: GameState, brains: Brains): void {
   if (next) {
     for (const m of state.merchants) {
       if (!rng.chance(m.id === HUMAN ? 0.6 : 0.55)) continue;
-      const r = makeRumor(rng, `r${state.nextId++}`, next, rng.chance(0.75));
+      const r = makeRumor(rng, `r${state.nextId++}`, next, rng.chance(0.75), lang);
       state.rumors.push(r);
       m.heard.push(r.id);
-      if (m.id === HUMAN) log(state, 'rumor', `A dockhand whispers: ${r.text}`, [HUMAN], true);
+      if (m.id === HUMAN) log(state, 'rumor', logWords(lang).whisper(r.text), [HUMAN], true, r.id);
     }
   }
   state.talksLeft = state.talkPerDay;
@@ -288,6 +273,8 @@ export function openDay(state: GameState, brains: Brains): void {
 }
 
 export function settlePromises(state: GameState, brains: Brains): void {
+  const lang = langOf(state);
+  const w = logWords(lang);
   for (const p of state.promises) {
     if (p.status !== 'open' || p.due !== state.day) continue;
     const debtor = merchant(state, p.from);
@@ -299,7 +286,7 @@ export function settlePromises(state: GameState, brains: Brains): void {
       p.status = 'kept';
       creditor.trust[debtor.id] = Math.min(1, (creditor.trust[debtor.id] ?? 0.7) + 0.1);
       creditor.mood[debtor.id] = Math.min(1, (creditor.mood[debtor.id] ?? 0) + 0.15);
-      log(state, 'promise', `${debtor.name} ${debtor.id === HUMAN ? 'deliver' : 'delivers'} ${describeBundle(p.bundle)} to ${creditor.name} as promised.`, [debtor.id, creditor.id]);
+      log(state, 'promise', w.kept(nameIn(state, debtor.id, lang), debtor.id === HUMAN, describeBundle(p.bundle, lang), nameIn(state, creditor.id, lang)), [debtor.id, creditor.id]);
     } else {
       p.status = 'broken';
       creditor.trust[debtor.id] = (creditor.trust[debtor.id] ?? 0.7) * 0.3;
@@ -309,7 +296,7 @@ export function settlePromises(state: GameState, brains: Brains): void {
         if (m.id === debtor.id || m.id === creditor.id) continue;
         m.trust[debtor.id] = Math.max(0, (m.trust[debtor.id] ?? 0.7) - 0.15);
       }
-      log(state, 'broken', `${debtor.name} ${debtor.id === HUMAN ? 'fail' : 'fails'} to deliver ${describeBundle(p.bundle)} to ${creditor.name}${can ? '' : debtor.id === HUMAN ? ' (you did not have it)' : ' (they did not have it)'}.`, [debtor.id, creditor.id]);
+      log(state, 'broken', w.broken(nameIn(state, debtor.id, lang), debtor.id === HUMAN, describeBundle(p.bundle, lang), nameIn(state, creditor.id, lang), can), [debtor.id, creditor.id]);
     }
   }
 }
@@ -367,11 +354,8 @@ export function closeMarket(state: GameState): void {
   for (const p of state.promises) if (p.status === 'open') p.status = 'broken';
   state.over = true;
   const lines = standings(state);
-  log(state, 'close', `The market closes. ${lines.map((l, i) => `${i + 1}. ${l.name} ${signed(l.profit)}`).join(', ')}.`);
-}
-
-export function signed(n: number): string {
-  return n >= 0 ? `+${n}` : `−${-n}`;
+  const lang = langOf(state);
+  log(state, 'close', logWords(lang).close(lines.map((l) => ({ name: nameIn(state, l.id, lang), profit: l.profit }))));
 }
 
 function clamp(n: number, lo: number, hi: number): number {

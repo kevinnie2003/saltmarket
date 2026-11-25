@@ -12,6 +12,10 @@ describe('local server', () => {
     const bad = structuredClone(g);
     bad.merchants[1].goods.salt = -3;
     expect(() => stateFrom(bad)).toThrow(/bad goods/);
+    expect(() => stateFrom({ ...g, lang: 'fr' })).toThrow(/bad lang/);
+    const old = structuredClone(g) as Partial<typeof g>;
+    delete old.lang;
+    expect(stateFrom(old).lang).toBeUndefined();
   });
 
   it('answers health and a talk request with the new state', async () => {
@@ -27,6 +31,12 @@ describe('local server', () => {
       expect(res.status).toBe(200);
       expect(body.reply.traded).toBe(true);
       expect(body.state.merchants[0].goods.wool).toBe(2);
+      const zh = await fetch(`${base}/api/talk`, { method: 'POST', body: JSON.stringify({ state: g, text: '佩尔，你缺什么？', provider: 'mock', lang: 'zh' }) });
+      const zb = await zh.json();
+      expect(zb.state.lang).toBe('zh');
+      expect(zb.reply.intent.kind).toBe('needs');
+      expect(zb.reply.say).toMatch(/[\u4e00-\u9fff]/);
+      expect(zb.state.log.at(-1).text).toMatch(/^Pell Dorran：/);
       const nope = await fetch(`${base}/api/talk`, { method: 'POST', body: JSON.stringify({ state: g, text: 'hi', provider: 'anthropic' }) });
       if (!process.env.ANTHROPIC_API_KEY) expect(nope.status).toBe(400);
       const junk = await fetch(`${base}/api/talk`, { method: 'POST', body: '{"state": 3}' });

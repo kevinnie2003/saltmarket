@@ -2,10 +2,10 @@
 // it returns is checked; bad output gets one repair round, then the rule parser.
 import { HUMAN } from '../engine/game.js';
 import { ASSETS, GOODS, type Bundle, type GameState, type Good } from '../engine/types.js';
-import { parseTalk, type Intent, type Parsed } from '../talk/parse.js';
+import { merchantNamed, parseTalk, type Intent, type Parsed } from '../talk/parse.js';
 import { extractJson } from './parse.js';
 import { ProviderError, UsageMeter, type ChatMessage, type LLMProvider } from './provider.js';
-import { RULES, goodsLine, pricesLine } from './situation.js';
+import { PLAYER_LANGUAGES, RULES, goodsLine, pricesLine } from './situation.js';
 
 export interface Reading extends Parsed {
   source: 'llm' | 'rules';
@@ -39,7 +39,7 @@ export class LLMInterpreter {
   async interpret(state: GameState, text: string, stall?: string): Promise<Reading> {
     const you = state.merchants.find((m) => m.id === HUMAN);
     const names = state.merchants.filter((m) => m.id !== HUMAN).map((m) => m.name);
-    const system = `${RULES}\n\nYour job: read what the player says at a market stall and turn it into one intent.\n${FORMAT}`;
+    const system = `${RULES}\n\nYour job: read what the player says at a market stall and turn it into one intent.\n${FORMAT}\n${PLAYER_LANGUAGES}`;
     const context = [
       `Day ${state.day}. Prices: ${pricesLine(state)}.`,
       `Merchants: ${names.join(', ')}. The open stall is ${stall ? state.merchants.find((m) => m.id === stall)?.name : 'none'}.`,
@@ -82,10 +82,9 @@ export function readingFromRaw(state: GameState, raw: unknown, stall?: string): 
   const o = raw as { to?: unknown; intent?: unknown };
   let to = stall;
   if (typeof o.to === 'string' && o.to.trim()) {
-    const want = o.to.trim().toLowerCase();
-    const m = state.merchants.find((x) => x.id !== HUMAN && (x.name.toLowerCase() === want || x.name.split(' ')[0].toLowerCase() === want || x.id === want));
-    if (!m) throw new Error(`no merchant called "${o.to}"`);
-    to = m.id;
+    const id = merchantNamed(state, o.to);
+    if (!id) throw new Error(`no merchant called "${o.to}"`);
+    to = id;
   }
   const i = o.intent as Record<string, unknown> | undefined;
   if (!i || typeof i !== 'object' || typeof i.kind !== 'string') throw new Error('missing "intent.kind"');

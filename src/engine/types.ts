@@ -1,5 +1,6 @@
 // Core data types. Everything in GameState is plain JSON so the browser can
 // hold the whole game and send it to a stateless server.
+import type { Lang } from '../i18n/lang.js';
 
 export const GOODS = ['salt', 'amber', 'dye', 'wool', 'spice', 'iron'] as const;
 export type Good = (typeof GOODS)[number];
@@ -96,6 +97,8 @@ export interface LogEntry {
   who?: string[];
   /** True when only the human player saw it (private chat). */
   private?: boolean;
+  /** The rumour a line passes on, by id. */
+  rumor?: string;
 }
 
 export interface GameState {
@@ -125,4 +128,9 @@ export interface GameState {
   nextId: number;
   /** Promises the player has chosen not to keep, by id. */
   breaking?: string[];
+  /**
+   * The language new text (log lines, events, rumours, replies) is written in.
+   * Text already written stays as it was. Missing in old saves: English.
+   */
+  lang?: Lang;
 }

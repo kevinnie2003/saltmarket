@@ -1,7 +1,13 @@
 // Turns what the player types at a stall into an intent. Rule based, so the
 // game works offline; the LLM interpreter produces the same Intent shape.
+// Words are read by what they are written in, not by the interface language:
+// a line with Chinese characters goes to the Chinese reader, anything else to
+// the English one.
 import { HUMAN, merchant } from '../engine/game.js';
 import { GOODS, type Bundle, type GameState, type Good, type Offer } from '../engine/types.js';
+import { hasCjk } from '../i18n/lang.js';
+import { NAME_ZH } from '../i18n/words.js';
+import { readIntentZh } from './zh.js';
 
 export type Intent =
   | { kind: 'offer'; give: Bundle; get: Bundle; later?: { give?: Bundle; get?: Bundle; due: number } }
@@ -38,6 +44,7 @@ const UNIT_WORDS = ['sack', 'sacks', 'lump', 'lumps', 'jar', 'jars', 'bale', 'ba
 
 function normalise(text: string): string {
   return text
+    .normalize('NFKC')
     .toLowerCase()
     .replace(/[‘’]/g, "'")
     .replace(/(\d+)\s*c\b/g, '$1 coin')
@@ -46,18 +53,30 @@ function normalise(text: string): string {
     .trim();
 }
 
-/** Who the message is for: a name at the start or after a greeting. */
+const GREETING = String.raw`(?:(?:hey|hi|ok|okay|so|well)[,\s]+|(?:嘿|喂|哎|嗨|你好|您好|早上好|早)[,，、\s]*)`;
+
+/** Who the message is for: a name at the start (in Latin letters or a Chinese spelling), or after a greeting. */
 export function addressee(state: GameState, text: string): { to?: string; rest: string } {
-  const t = text.trim();
+  const t = text.normalize('NFKC').trim();
   for (const m of state.merchants) {
     if (m.id === HUMAN) continue;
     const first = m.name.split(' ')[0].toLowerCase();
     const full = m.name.toLowerCase();
-    const re = new RegExp(`^(?:(?:hey|hi|ok|okay|so|well)[, ]+)?(${escape(full)}|${escape(first)})\\b[,:]?\\s*`, 'i');
+    const names = [full, first, ...(NAME_ZH[m.name] ?? [])].map(escape).join('|');
+    const re = new RegExp(`^${GREETING}?(${names})(?![a-z])(?:[,:，：、]|\\s)*`, 'i');
     const mm = t.match(re);
     if (mm) return { to: m.id, rest: t.slice(mm[0].length) };
   }
   return { rest: t };
+}
+
+/** A merchant named in a model's reply, by full name, first name, id or Chinese spelling. */
+export function merchantNamed(state: GameState, name: string): string | undefined {
+  const want = name.trim().toLowerCase();
+  const m = state.merchants.find(
+    (x) => x.id !== HUMAN && (x.name.toLowerCase() === want || x.name.split(' ')[0].toLowerCase() === want || x.id === want || (NAME_ZH[x.name] ?? []).includes(name.trim())),
+  );
+  return m?.id;
 }
 
 function escape(s: string): string {
@@ -147,8 +166,7 @@ function readLater(state: GameState, text: string): { rest: string; later?: { gi
 export function parseTalk(state: GameState, raw: string, to?: string): Parsed {
   const named = addressee(state, raw);
   const target = named.to ?? to;
-  const text = normalise(named.rest);
-  const intent = readIntent(state, text, target);
+  const intent = hasCjk(named.rest) ? readIntentZh(state, named.rest, target) : readIntent(state, normalise(named.rest), target);
   return { to: target, intent };
 }
 
@@ -201,9 +219,16 @@ function readIntent(state: GameState, text: string, to?: string): Intent {
 function readBump(state: GameState, text: string, to?: string): Intent | null {
   const m = text.match(/^(?:how about|what about|ok(?:ay)?|fine|make it|say|would you take|will you take|i'?ll (?:do|pay|give you|take)|i can do|i could do|meet me at|let'?s say)?[,\s]*(\d+)(?:\s*(?:coin|coins|silver|crowns))?(?:\s+then)?(?:\s*(?:for it|for that|instead))?$/);
   if (!m || !to) return null;
+  return bumpOffer(state, to, Number(m[1]));
+}
+
+/**
+ * A new coin figure `n` for the deal on the table at `to`, with everything else
+ * kept. Null when there is no deal, or no coin in it to change.
+ */
+export function bumpOffer(state: GameState, to: string, n: number): Intent | null {
   const o = state.pending[to];
   if (!o) return null;
-  const n = Number(m[1]);
   // From the player's side: the merchant's `get` is what the player gives.
   let give = { ...o.get };
   let get = { ...o.give };
@@ -272,11 +297,11 @@ function readOffer(state: GameState, text0: string, to?: string): Intent | null 
   return { kind: 'offer', give: give ?? {}, get: get ?? {}, later };
 }
 
-function onlyGoods(b: Bundle): boolean {
+export function onlyGoods(b: Bundle): boolean {
   return !b.coin && GOODS.some((g) => (b[g] ?? 0) > 0);
 }
 
-function onlyCoin(b: Bundle): boolean {
+export function onlyCoin(b: Bundle): boolean {
   return (b.coin ?? 0) > 0 && GOODS.every((g) => !(b[g] ?? 0));
 }
 

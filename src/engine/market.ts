@@ -1,4 +1,6 @@
 // The market: goods, starting prices, merchants, events and rumours.
+import type { Lang } from '../i18n/lang.js';
+import { eventText, goodsList, rumorText as rumorWords } from '../i18n/words.js';
 import { Rng } from './rng.js';
 import { GOODS, type Contract, type EventKind, type Good, type MarketEvent, type Merchant, type Personality, type Rumor } from './types.js';
 
@@ -74,15 +76,6 @@ export function makeMerchant(rng: Rng, id: string, t: MerchantTemplate): Merchan
   };
 }
 
-const EVENT_TEXT: Record<EventKind, (g: Good[]) => string> = {
-  ship: (g) => `A cargo ship from the south ties up, heavy with ${list(g)}. Prices drop.`,
-  storm: (g) => `Storm on the strait. No boats get through, and ${list(g)} climbs.`,
-  guild: (g) => `The guild posts a big order for ${list(g)}. Buyers line the quay.`,
-  fair: (g) => `Fair day in town. Everyone wants ${list(g)}.`,
-  blight: (g) => `Bad news from the farms: ${list(g)} will be short this season.`,
-  quiet: () => 'A quiet morning on the quay.',
-};
-
 const EVENT_GOODS: Record<EventKind, Good[][]> = {
   ship: [['spice'], ['amber'], ['dye'], ['salt', 'iron']],
   storm: [['spice', 'dye'], ['amber'], ['salt']],
@@ -94,43 +87,34 @@ const EVENT_GOODS: Record<EventKind, Good[][]> = {
 
 const EVENT_MULT: Record<EventKind, number> = { ship: 0.65, storm: 1.4, guild: 1.45, fair: 1.3, blight: 1.5, quiet: 1 };
 
-export function eventFor(kind: EventKind, goods: Good[], day: number): MarketEvent {
+export function eventFor(kind: EventKind, goods: Good[], day: number, lang: Lang = 'en'): MarketEvent {
   const effect: Partial<Record<Good, number>> = {};
   for (const g of goods) effect[g] = EVENT_MULT[kind];
-  return { day, kind, text: EVENT_TEXT[kind](goods), effect };
+  return { day, kind, text: eventText(kind, goods, lang), effect };
+}
+
+/** The goods an event moves. */
+export function eventGoods(ev: MarketEvent): Good[] {
+  return Object.keys(ev.effect) as Good[];
 }
 
 /** One event per day after the first. Day 1 is always quiet. */
-export function makeSchedule(rng: Rng, days: number): MarketEvent[] {
-  const out: MarketEvent[] = [eventFor('quiet', [], 1)];
+export function makeSchedule(rng: Rng, days: number, lang: Lang = 'en'): MarketEvent[] {
+  const out: MarketEvent[] = [eventFor('quiet', [], 1, lang)];
   const kinds: EventKind[] = ['ship', 'storm', 'guild', 'fair', 'blight', 'quiet'];
   for (let d = 2; d <= days; d++) {
     const kind = rng.pick(kinds);
-    out.push(eventFor(kind, rng.pick(EVENT_GOODS[kind]), d));
+    out.push(eventFor(kind, rng.pick(EVENT_GOODS[kind]), d, lang));
   }
   return out;
 }
 
-export function rumorText(kind: EventKind, goods: Good[], day: number): string {
-  const when = `on day ${day}`;
-  switch (kind) {
-    case 'ship':
-      return `A ship loaded with ${list(goods)} is due ${when}.`;
-    case 'storm':
-      return `Fishermen say a storm will close the strait ${when}, and ${list(goods)} will be scarce.`;
-    case 'guild':
-      return `The guild means to buy up ${list(goods)} ${when}.`;
-    case 'fair':
-      return `The fair ${when} will want ${list(goods)}.`;
-    case 'blight':
-      return `Word from the farms: ${list(goods)} will run short ${when}.`;
-    default:
-      return `Nothing much is expected ${when}.`;
-  }
+export function rumorText(kind: EventKind, goods: Good[], day: number, lang: Lang = 'en'): string {
+  return rumorWords(kind, goods, day, lang);
 }
 
 /** A true rumour about an event, or a false one about something that won't happen. */
-export function makeRumor(rng: Rng, id: string, real: MarketEvent, truthful: boolean): Rumor {
+export function makeRumor(rng: Rng, id: string, real: MarketEvent, truthful: boolean, lang: Lang = 'en'): Rumor {
   let kind = real.kind;
   let goods = Object.keys(real.effect) as Good[];
   if (!truthful) {
@@ -140,13 +124,11 @@ export function makeRumor(rng: Rng, id: string, real: MarketEvent, truthful: boo
       goods = rng.pick(EVENT_GOODS[kind]);
     } while (kind === real.kind && same(goods, Object.keys(real.effect) as Good[]));
   }
-  return { id, day: real.day, kind, goods, text: rumorText(kind, goods, real.day), truth: truthful, direction: EVENT_MULT[kind] };
+  return { id, day: real.day, kind, goods, text: rumorText(kind, goods, real.day, lang), truth: truthful, direction: EVENT_MULT[kind] };
 }
 
-export function list(goods: Good[]): string {
-  if (goods.length === 0) return 'nothing';
-  if (goods.length === 1) return goods[0];
-  return `${goods.slice(0, -1).join(', ')} and ${goods[goods.length - 1]}`;
+export function list(goods: Good[], lang: Lang = 'en'): string {
+  return goodsList(goods, lang);
 }
 
 function same(a: Good[], b: Good[]): boolean {

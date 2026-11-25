@@ -1,6 +1,8 @@
 // One exchange at a stall: read the player's words, then let the merchant
 // answer. Each half can be a model or the built-in rules.
 import type { GameState } from '../engine/types.js';
+import { langOf } from '../i18n/lang.js';
+import { talkWords } from '../i18n/words.js';
 import { talk, type TalkResult } from '../agents/talk.js';
 import { parseTalk, type Intent } from '../talk/parse.js';
 import type { LLMInterpreter } from './interpreter.js';
@@ -27,7 +29,7 @@ export async function stallTalk(
   else reading = { ...parseTalk(state, text, stall), source: 'rules' };
   if (reading.fallbackReason) fallback.push(`reading: ${reading.fallbackReason}`);
   const to = reading.to ?? stall;
-  if (!to) return { say: 'Pick a stall first, or start with a merchant’s name.', spent: false, intent: reading.intent, readBy: reading.source, answeredBy: 'rules', fallback };
+  if (!to) return { say: talkWords(langOf(state)).pickStall, spent: false, intent: reading.intent, readBy: reading.source, answeredBy: 'rules', fallback };
   if (opts.merchant) {
     const r = await opts.merchant.reply(state, to, reading.intent, text);
     if (r.fallbackReason) fallback.push(`answer: ${r.fallbackReason}`);

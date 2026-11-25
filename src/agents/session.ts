@@ -2,6 +2,8 @@
 // haggling at dusk, and moving to the next day.
 import { HUMAN, advanceDay, createGame, executeOffer, log, merchant, offerProblems, pitch, type GameOptions } from '../engine/game.js';
 import type { GameState, Merchant, Offer } from '../engine/types.js';
+import { langOf } from '../i18n/lang.js';
+import { logWords, talkWords } from '../i18n/words.js';
 import { MIND_BRAINS, propose, respond, roll } from './mind.js';
 import { line } from './voice.js';
 
@@ -25,7 +27,9 @@ export function postOffers(state: GameState): void {
     const o = propose(state, m, you);
     if (!o) continue;
     state.pending[m.id] = o;
-    log(state, 'say', `${m.name}: ${line(m.personality, 'offer', roll(state, m.id, state.day, 'o') * 1000)} ${pitch(state, o)}.`, [m.id, HUMAN], true);
+    const lang = langOf(state);
+    const said = talkWords(lang).withDeal(line(m.personality, 'offer', roll(state, m.id, state.day, 'o') * 1000, lang), pitch(state, o, lang));
+    log(state, 'say', logWords(lang).says(m.name, said), [m.id, HUMAN], true);
   }
 }
 
