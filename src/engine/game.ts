@@ -295,7 +295,7 @@ export function settlePromises(state: GameState, brains: Brains): void {
       p.status = 'kept';
       creditor.trust[debtor.id] = Math.min(1, (creditor.trust[debtor.id] ?? 0.7) + 0.1);
       creditor.mood[debtor.id] = Math.min(1, (creditor.mood[debtor.id] ?? 0) + 0.15);
-      log(state, 'promise', `${debtor.name} delivers ${describeBundle(p.bundle)} to ${creditor.name} as promised.`, [debtor.id, creditor.id]);
+      log(state, 'promise', `${debtor.name} ${debtor.id === HUMAN ? 'deliver' : 'delivers'} ${describeBundle(p.bundle)} to ${creditor.name} as promised.`, [debtor.id, creditor.id]);
     } else {
       p.status = 'broken';
       creditor.trust[debtor.id] = (creditor.trust[debtor.id] ?? 0.7) * 0.3;
@@ -305,7 +305,7 @@ export function settlePromises(state: GameState, brains: Brains): void {
         if (m.id === debtor.id || m.id === creditor.id) continue;
         m.trust[debtor.id] = Math.max(0, (m.trust[debtor.id] ?? 0.7) - 0.15);
       }
-      log(state, 'broken', `${debtor.name} fails to deliver ${describeBundle(p.bundle)} to ${creditor.name}${can ? '' : ' (they did not have it)'}.`, [debtor.id, creditor.id]);
+      log(state, 'broken', `${debtor.name} ${debtor.id === HUMAN ? 'fail' : 'fails'} to deliver ${describeBundle(p.bundle)} to ${creditor.name}${can ? '' : debtor.id === HUMAN ? ' (you did not have it)' : ' (they did not have it)'}.`, [debtor.id, creditor.id]);
     }
   }
 }

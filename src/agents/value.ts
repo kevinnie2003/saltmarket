@@ -101,7 +101,23 @@ export function gain(state: GameState, me: Merchant, offer: Offer, opts: { honor
     apply(h, o.later.give, -1, opts.honorOwn ?? 1);
   }
   for (const g of GOODS) if (h.goods[g] < 0) return -Infinity;
+  // Honest merchants keep enough back to pay what they already owe.
+  if (STYLES[me.personality].defaultRate === 0) {
+    const owed = owedBy(state, me.id);
+    if (h.coin < (owed.coin ?? 0) - 1e-9) return -Infinity;
+    for (const g of GOODS) if (h.goods[g] < (owed[g] ?? 0)) return -Infinity;
+  }
   return worth(state, me, h) - before;
+}
+
+/** Everything a merchant has promised and not yet delivered. */
+export function owedBy(state: GameState, id: string): Bundle {
+  const out: Bundle = {};
+  for (const p of state.promises) {
+    if (p.status !== 'open' || p.from !== id) continue;
+    for (const [k, v] of Object.entries(p.bundle)) out[k as keyof Bundle] = (out[k as keyof Bundle] ?? 0) + (v as number);
+  }
+  return out;
 }
 
 /** Market value of everything that changes hands, used to size the wanted gain. */
