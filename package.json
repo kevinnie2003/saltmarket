@@ -1,0 +1,29 @@
+{
+  "name": "saltmarket",
+  "version": "0.1.0",
+  "description": "Saltmarket: an original harbour trading game where you haggle in plain words with AI merchants who keep their own books and grudges.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "sim": "node scripts/build.mjs --node-only && node dist/sim.js",
+    "start": "node scripts/build.mjs && node dist/server.js"
+  },
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^26.6.10",
+    "esbuild": "^0.28.2",
+    "jsdom": "^26.1.0",
+    "typescript": "^5.9.3",
+    "vitest": "^5.1.1"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0"
+  }
+}
