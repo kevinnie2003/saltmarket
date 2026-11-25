@@ -1,0 +1,1504 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>Saltmarket</title>
+    <style>
+/* Saltmarket: a harbour merchant's daybook. Cream paper, iron-gall ink, one
+   cinnabar seal colour, ruled ledger columns with figures set right. */
+
+:root {
+  --paper: #f3ead6;
+  --paper-deep: #e9dcbf;
+  --sheet: #f8f1e2;
+  --field: #fcf8ee;
+  --ink: #1e1b18;
+  --ink-soft: #4b4337;
+  --ink-faint: #6b604f;
+  --rule: #cdbd9c;
+  --rule-strong: #9b8865;
+  --seal: #b3341d;
+  --seal-soft: rgba(179, 52, 29, 0.42);
+
+  --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, 'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'Noto Serif SC', STSong, serif;
+  --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, 'Liberation Mono', 'Noto Sans Mono CJK SC', 'Songti SC', monospace;
+
+  /* A 1.2 type scale. */
+  --step--2: 0.72rem;
+  --step--1: 0.84rem;
+  --step-0: 1rem;
+  --step-1: 1.2rem;
+  --step-2: 1.44rem;
+  --step-3: 1.73rem;
+  --step-4: 2.3rem;
+  --leading: 1.5;
+
+  --gap: 1.25rem;
+  --pad: 1rem;
+
+  font-family: var(--serif);
+  font-size: 100%;
+  line-height: var(--leading);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+:root:lang(zh) {
+  --leading: 1.75;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--paper);
+  font-kerning: normal;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.muted {
+  color: var(--ink-faint);
+}
+
+.bad,
+.loss {
+  color: var(--seal);
+}
+
+/* Mono labels: the clerk's hand for captions and column heads. */
+.label {
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+:lang(zh) .label,
+.label:lang(zh) {
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: var(--step--1);
+}
+
+.figure,
+.num {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.num {
+  text-align: right;
+  white-space: nowrap;
+}
+
+:focus-visible {
+  outline: 2px solid var(--seal);
+  outline-offset: 2px;
+}
+
+/* ---------- buttons and fields ---------- */
+
+button {
+  min-height: 2.5rem;
+  padding: 0.4rem 0.95rem;
+  border: 1px solid var(--ink);
+  border-radius: 1px;
+  background: transparent;
+  cursor: pointer;
+  line-height: 1.25;
+  text-align: center;
+}
+
+button:hover:not(:disabled) {
+  background: var(--paper-deep);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+button:disabled {
+  border-style: dashed;
+  color: var(--ink-faint);
+  cursor: not-allowed;
+}
+
+button.primary {
+  background: var(--ink);
+  color: var(--sheet);
+}
+
+button.primary:hover:not(:disabled) {
+  background: #000;
+}
+
+button.primary:disabled {
+  background: transparent;
+  color: var(--ink-faint);
+}
+
+button.wide {
+  width: 100%;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid var(--ink-soft);
+  border-radius: 1px;
+  background: var(--field);
+  padding: 0.45rem 0.6rem;
+  min-height: 2.5rem;
+}
+
+textarea {
+  resize: vertical;
+  line-height: var(--leading);
+}
+
+::placeholder {
+  color: var(--ink-faint);
+  opacity: 1;
+}
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 0.75rem 2rem;
+  padding: 1rem 1.5rem 0.8rem;
+  border-bottom: 3px double var(--ink);
+}
+
+.brand h1 {
+  font-size: var(--step-3);
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  line-height: 1.05;
+  font-variant: small-caps;
+}
+
+.brand .sub {
+  margin-top: 0.25rem;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+:lang(zh) .brand .sub {
+  letter-spacing: 0.02em;
+  font-size: var(--step--1);
+}
+
+.gauge {
+  display: grid;
+  gap: 0.35rem;
+  justify-self: center;
+  min-width: 0;
+}
+
+.gauge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.gauge-row .label {
+  min-width: 6.5rem;
+}
+
+.ticks {
+  display: flex;
+  flex-wrap: wrap;
+  row-gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ticks li {
+  width: 1.65rem;
+  height: 1.65rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--rule-strong);
+  margin-left: -1px;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+  background: var(--sheet);
+}
+
+/* Days gone are struck through in the book. */
+.ticks li.past {
+  color: var(--ink-faint);
+  background: linear-gradient(to top right, transparent calc(50% - 0.5px), var(--rule-strong) calc(50% - 0.5px), var(--rule-strong) calc(50% + 0.5px), transparent calc(50% + 0.5px)), var(--paper-deep);
+}
+
+.ticks li.now {
+  position: relative;
+  z-index: 1;
+  border: 2px solid var(--seal);
+  color: var(--seal);
+  font-weight: 700;
+}
+
+.dayline {
+  font-size: var(--step--1);
+  white-space: nowrap;
+}
+
+.pips {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.pips i {
+  width: 0.6rem;
+  height: 0.95rem;
+  border: 1px solid var(--ink-soft);
+}
+
+.pips i.on {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+#talkfig {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+.lang {
+  display: flex;
+  align-self: start;
+}
+
+.lang button {
+  min-height: 2.25rem;
+  min-width: 3.25rem;
+  padding: 0.25rem 0.7rem;
+  font-family: var(--mono);
+  font-size: var(--step--1);
+}
+
+.lang button + button {
+  margin-left: -1px;
+}
+
+.lang button[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--sheet);
+}
+
+/* ---------- sheets ---------- */
+
+.sheet {
+  background: var(--sheet);
+  border: 1px solid var(--rule-strong);
+  padding: var(--pad);
+  min-width: 0;
+}
+
+.sheet > .head {
+  font-size: var(--step-1);
+  font-weight: 600;
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.65rem;
+  border-bottom: 3px double var(--rule-strong);
+}
+
+.sheet h3.label {
+  margin: 0.9rem 0 0.35rem;
+}
+
+/* ---------- ledger tables ---------- */
+
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+}
+
+.ledger th,
+.ledger td {
+  padding: 0.32rem 0.4rem;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: baseline;
+  font-weight: normal;
+}
+
+.ledger td:not(.num),
+.ledger th:not(.num) {
+  overflow-wrap: anywhere;
+}
+
+.ledger thead th {
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  border-bottom: 1px solid var(--ink);
+}
+
+:lang(zh) .ledger thead th {
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: var(--step--1);
+}
+
+.ledger th:first-child,
+.ledger td:first-child {
+  padding-left: 0;
+}
+
+.ledger th:last-child,
+.ledger td:last-child {
+  padding-right: 0;
+}
+
+.ledger .num {
+  text-align: right;
+}
+
+/* ---------- the start page ---------- */
+
+.setup {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: 2rem 3rem;
+  max-width: 72rem;
+  padding: 2.25rem 1.5rem 3rem;
+  align-items: start;
+}
+
+.folio .title,
+.final .title {
+  font-size: var(--step-4);
+  font-weight: 600;
+  line-height: 1.15;
+  margin: 0.5rem 0 1rem;
+  max-width: 22em;
+}
+
+:lang(zh) .folio .title,
+:lang(zh) .final .title {
+  font-size: var(--step-3);
+  line-height: 1.4;
+}
+
+.lede {
+  font-size: var(--step-1);
+  max-width: 34em;
+  margin-bottom: 1.6rem;
+}
+
+.rules {
+  counter-reset: rule;
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  max-width: 40em;
+  border-top: 1px solid var(--ink);
+}
+
+.rules li {
+  counter-increment: rule;
+  display: grid;
+  grid-template-columns: 2.5rem minmax(0, 1fr);
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.rules li::before {
+  content: counter(rule, decimal-leading-zero);
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--seal);
+  padding-top: 0.1em;
+}
+
+.side {
+  min-width: 0;
+}
+
+.ticket {
+  background: var(--sheet);
+  border: 1px solid var(--ink);
+  outline: 1px solid var(--rule-strong);
+  outline-offset: 3px;
+  padding: 1.1rem;
+  margin: 3px 3px 1.5rem;
+}
+
+.ticket > .label {
+  display: block;
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 0.4rem;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.75rem;
+  margin: 0.9rem 0 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.field input,
+.field select {
+  width: 100%;
+  font-family: var(--mono);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.examples {
+  list-style: none;
+  margin: 0 0 1.2rem;
+  padding: 0;
+}
+
+.examples li {
+  padding: 0.35rem 0;
+  border-bottom: 1px dotted var(--rule-strong);
+  overflow-wrap: anywhere;
+}
+
+.fine {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+  max-width: 32em;
+}
+
+/* ---------- the game ---------- */
+
+.game {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 19rem 17.5rem;
+  gap: var(--gap);
+  padding: var(--gap) 1.5rem 2.5rem;
+  align-items: start;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  min-width: 0;
+}
+
+/* The index of merchants: one entry each. */
+.stalls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  border-top: 1px solid var(--ink);
+}
+
+.stall {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  min-width: 0;
+  padding: 0.55rem 1.6rem 0.55rem 0.7rem;
+  text-align: left;
+  border: 0;
+  border-bottom: 1px solid var(--rule-strong);
+  border-right: 1px solid var(--rule);
+  background: transparent;
+}
+
+.stall .who {
+  font-weight: 600;
+  font-size: var(--step-0);
+  overflow-wrap: anywhere;
+}
+
+.stall small {
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+}
+
+.stall small.good {
+  color: var(--ink);
+}
+
+.stall small.bad {
+  color: var(--seal);
+}
+
+.stall.on {
+  background: var(--sheet);
+  box-shadow: inset 0 3px 0 var(--ink);
+}
+
+/* A merchant with a deal waiting gets the seal. */
+.seal {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.6rem;
+  width: 0.65rem;
+  height: 0.65rem;
+  background: var(--seal);
+  transform: rotate(45deg);
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.stallhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 3px double var(--rule-strong);
+}
+
+.who-block {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.stallhead h2 {
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.blurb {
+  margin-top: 0.2rem;
+  font-style: italic;
+  color: var(--ink-soft);
+  max-width: 36em;
+}
+
+:lang(zh) .blurb,
+.blurb:lang(zh) {
+  font-style: normal;
+}
+
+.theirs {
+  flex: 0 1 11rem;
+  min-width: 9rem;
+}
+
+.stock {
+  margin-top: 0.15rem;
+}
+
+.stock tr.coin th,
+.stock tr.coin td {
+  border-bottom: 0;
+  border-top: 1px solid var(--ink);
+}
+
+/* The daybook: one ruled line per thing said, the day in the margin. */
+.convo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-height: 12rem;
+  max-height: min(30rem, 56vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border-top: 1px solid var(--rule);
+}
+
+.convo li {
+  display: grid;
+  grid-template-columns: 4.25rem minmax(0, 1fr);
+  border-bottom: 1px solid var(--rule);
+}
+
+:lang(zh) .convo li {
+  grid-template-columns: 4.75rem minmax(0, 1fr);
+}
+
+.convo .d,
+.quaylog .d {
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.convo .d {
+  padding: 0.5rem 0.5rem 0 0;
+  border-right: 1px solid var(--seal-soft);
+}
+
+.convo .line {
+  padding: 0.4rem 0 0.4rem 0.75rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.convo li.me .line {
+  padding-left: 1.75rem;
+  color: var(--ink-soft);
+  position: relative;
+}
+
+/* What you said: set in from the margin with a short dash, like a reply noted in the book. */
+.convo li.me .line::before {
+  content: '';
+  position: absolute;
+  left: 0.75rem;
+  top: 1.05em;
+  width: 0.6rem;
+  border-top: 1px solid var(--ink-soft);
+}
+
+.convo li.k-rumor .line {
+  font-style: italic;
+}
+
+:lang(zh) .convo li.k-rumor .line,
+.convo li.k-rumor .line:lang(zh) {
+  font-style: normal;
+}
+
+.convo li.muted {
+  display: block;
+  padding: 0.6rem 0;
+  border-bottom: 0;
+}
+
+/* The deal on the table, as a bill of exchange: both sides, then what it does to your worth. */
+.bill {
+  border: 3px double var(--ink);
+  background: var(--field);
+  padding: 0.85rem 1rem;
+  min-width: 0;
+}
+
+.bill-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--ink);
+}
+
+.bill-head .label {
+  color: var(--seal);
+}
+
+.bill-from {
+  font-style: italic;
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+:lang(zh) .bill-from {
+  font-style: normal;
+}
+
+.bill-cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.bill-side {
+  padding: 0.6rem 0.9rem 0.6rem 0;
+  min-width: 0;
+}
+
+.bill-side + .bill-side {
+  padding: 0.6rem 0 0.6rem 0.9rem;
+  border-left: 1px solid var(--rule-strong);
+}
+
+.bill-side .label {
+  margin: 0 0 0.2rem;
+}
+
+.bill-side .ledger td.num {
+  width: 3.5rem;
+  font-size: var(--step-0);
+}
+
+.bill-side tr.later th {
+  padding-top: 0.55rem;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+  border-bottom: 1px dotted var(--rule-strong);
+}
+
+.bill-worth {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--ink);
+  font-size: var(--step--1);
+}
+
+/* A dotted leader runs from the words to the figure. */
+.bill-worth span:first-child {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.bill-worth span:first-child::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px dotted var(--ink-faint);
+  min-width: 1rem;
+}
+
+.bill-worth .figure {
+  font-size: var(--step-1);
+  white-space: nowrap;
+}
+
+.bill-problem {
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--ink);
+  font-size: var(--step--1);
+}
+
+.bill-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.bill-actions .hint {
+  font-size: var(--step--1);
+  color: var(--ink-faint);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.chips:empty {
+  display: none;
+}
+
+.chip {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.7rem;
+  font-size: var(--step--1);
+  border: 1px dashed var(--ink-soft);
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.say {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.say-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.say-row textarea {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--step-0);
+}
+
+.preview {
+  min-height: 1.4em;
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+  overflow-wrap: anywhere;
+}
+
+.preview.warn {
+  color: var(--seal);
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.row.small {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+.row.small select {
+  min-height: 2.25rem;
+  padding: 0.2rem 0.4rem;
+}
+
+.talks {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+}
+
+/* ---------- your side ---------- */
+
+.purse {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.purse .label {
+  flex: 1;
+}
+
+.purse .figure,
+.standing .figure {
+  font-size: var(--step-3);
+  line-height: 1;
+}
+
+.purse .unit,
+.standing .unit {
+  font-size: var(--step--1);
+  color: var(--ink-soft);
+}
+
+.goods tr.nil th,
+.goods tr.nil td {
+  color: var(--ink-faint);
+}
+
+.goods tr.wanted th {
+  font-weight: 600;
+}
+
+.goods td.unit {
+  font-size: var(--step--2);
+  color: var(--ink-faint);
+  padding-left: 0.3rem;
+}
+
+/* The contract: an order slip with the seal stamped on it. */
+.slip {
+  position: relative;
+  border-color: var(--ink);
+}
+
+.slip-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.stamp {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border: 2px solid var(--seal);
+  outline: 1px solid var(--seal);
+  outline-offset: 2px;
+  color: var(--seal);
+  font-family: var(--mono);
+  font-size: var(--step--1);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-6deg);
+  white-space: nowrap;
+}
+
+:lang(zh) .stamp {
+  letter-spacing: 0.25em;
+  padding-right: 0.25rem;
+}
+
+.stamp.open {
+  border-style: dashed;
+  outline: 0;
+  font-weight: 500;
+  transform: rotate(-3deg);
+}
+
+.slip-for {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.slip-pays {
+  font-size: var(--step--1);
+  margin-bottom: 0.4rem;
+}
+
+.needs td.meter {
+  width: 40%;
+  vertical-align: middle;
+}
+
+.bar {
+  display: block;
+  height: 0.5rem;
+  border: 1px solid var(--ink-soft);
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+
+.needs tr.where td {
+  padding-top: 0;
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+}
+
+#contract > p:last-child {
+  margin-top: 0.5rem;
+  font-size: var(--step--1);
+}
+
+#contract .done {
+  font-weight: 600;
+}
+
+.promises {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.promises li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 0.6rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--step--1);
+}
+
+.promises li.muted {
+  display: block;
+  border-bottom: 0;
+}
+
+.promises .what {
+  overflow-wrap: anywhere;
+}
+
+.promises .due {
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.promises .p-broken .what {
+  text-decoration: line-through;
+  text-decoration-color: var(--seal);
+}
+
+.promises .p-broken .due {
+  color: var(--seal);
+}
+
+.promises .keep {
+  grid-column: 1 / -1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  cursor: pointer;
+}
+
+.promises .keep input {
+  min-height: 0;
+  width: 1.05rem;
+  height: 1.05rem;
+  margin: 0;
+  accent-color: var(--ink);
+}
+
+.closing {
+  display: grid;
+  gap: 0.75rem;
+  border-color: var(--ink);
+}
+
+.standing {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+}
+
+.standing .label {
+  flex: 1 1 100%;
+}
+
+/* ---------- the board ---------- */
+
+.prices .chg {
+  font-size: var(--step--2);
+  color: var(--ink-soft);
+}
+
+.prices .chg.up {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.prices .chg.down {
+  color: var(--seal);
+}
+
+.event {
+  font-style: italic;
+  overflow-wrap: anywhere;
+}
+
+:lang(zh) .event {
+  font-style: normal;
+}
+
+.recap ul,
+.rumors,
+.quaylog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.recap li,
+.rumors li,
+.quaylog li {
+  padding: 0.35rem 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: var(--step--1);
+  overflow-wrap: anywhere;
+}
+
+.recap .k-broken,
+.quaylog .k-broken {
+  color: var(--seal);
+}
+
+.rumors .src {
+  display: block;
+}
+
+.quaylog .d {
+  margin-right: 0.35rem;
+}
+
+.quaylog .k-event {
+  font-style: italic;
+}
+
+.quaylog .k-close {
+  font-weight: 600;
+}
+
+/* ---------- the close ---------- */
+
+.result {
+  padding: 2rem 1.5rem 3rem;
+}
+
+.final {
+  max-width: 60rem;
+  padding: 1.5rem;
+  border-color: var(--ink);
+}
+
+.final .title {
+  font-size: var(--step-3);
+}
+
+.final > .muted,
+.final > p {
+  margin: 0.6rem 0;
+}
+
+.standings {
+  margin: 0.75rem 0;
+  font-size: var(--step-0);
+}
+
+.standings small {
+  display: block;
+  font-family: var(--mono);
+  font-size: var(--step--2);
+  color: var(--ink-faint);
+}
+
+.standings tr.me th,
+.standings tr.me td {
+  background: var(--paper-deep);
+}
+
+.standings tr.me th b::after {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-left: 0.45rem;
+  background: var(--seal);
+  transform: rotate(45deg) translateY(-0.1rem);
+}
+
+.deals td {
+  vertical-align: top;
+}
+
+.deals tr.best td {
+  background: var(--paper-deep);
+}
+
+.final .actions {
+  margin-top: 1.25rem;
+}
+
+/* ---------- narrower screens ---------- */
+
+@media (max-width: 1180px) {
+  .game {
+    grid-template-columns: minmax(0, 1fr) 19rem;
+  }
+
+  .board {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    align-items: start;
+  }
+
+  .masthead {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .gauge {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --gap: 0.85rem;
+    --pad: 0.85rem;
+  }
+
+  .masthead {
+    padding: 0.75rem 0.85rem 0.65rem;
+  }
+
+  .brand h1 {
+    font-size: var(--step-2);
+  }
+
+  .gauge-row .label {
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .setup {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 1.25rem 0.85rem 2rem;
+  }
+
+  .folio .title {
+    font-size: var(--step-3);
+  }
+
+  .lede {
+    font-size: var(--step-0);
+  }
+
+  .game {
+    grid-template-columns: minmax(0, 1fr);
+    padding: var(--gap) 0.85rem 2rem;
+  }
+
+  .board {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* One column, one scroll: the page itself. */
+  .convo {
+    max-height: none;
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .stalls {
+    grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  }
+
+  .theirs {
+    flex: 1 1 100%;
+  }
+
+  .result {
+    padding: 1rem 0.85rem 2rem;
+  }
+
+  .final {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .bill-cols {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bill-side,
+  .bill-side + .bill-side {
+    padding: 0.5rem 0;
+    border-left: 0;
+  }
+
+  .bill-side + .bill-side {
+    border-top: 1px dotted var(--rule-strong);
+  }
+
+  .say-row {
+    flex-direction: column;
+  }
+
+  .ticks li {
+    width: 1.45rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:active:not(:disabled) {
+    transform: none;
+  }
+}
+
+</style>
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="brand">
+        <h1 data-t="brand">Saltmarket</h1>
+        <p class="sub" data-t="brandSub"></p>
+      </div>
+      <div id="gauge" class="gauge hidden">
+        <div class="gauge-row">
+          <span class="label" data-t="gaugeLabel"></span>
+          <ol id="daygauge" class="ticks" aria-hidden="true"></ol>
+          <span id="dayline" class="figure dayline"></span>
+        </div>
+        <div class="gauge-row">
+          <span class="label" data-t="gaugeTalks"></span>
+          <span id="pips" class="pips" aria-hidden="true"></span>
+          <span id="talkfig" class="figure"></span>
+        </div>
+      </div>
+      <div class="lang" role="group" data-t-aria="langLabel">
+        <button type="button" data-lang="en" lang="en">EN</button>
+        <button type="button" data-lang="zh" lang="zh-CN">中文</button>
+      </div>
+    </header>
+
+    <section id="setup" class="setup">
+      <div class="folio">
+        <p class="label" data-t="setupLabel"></p>
+        <h2 class="title" data-t="setupTitle"></h2>
+        <p class="lede" data-t="lede"></p>
+        <h3 class="label" data-t="rulesTitle"></h3>
+        <ol id="rules" class="rules"></ol>
+      </div>
+      <div class="side">
+        <div class="ticket">
+          <h3 class="label" data-t="ticketTitle"></h3>
+          <div class="fields">
+            <label class="field"
+              ><span class="label" data-t="daysLabel"></span>
+              <select id="days"><option value="6">6</option><option value="8" selected>8</option><option value="10">10</option></select>
+            </label>
+            <label class="field"><span class="label" data-t="seedLabel"></span> <input id="seed" data-t-ph="seedPh" autocomplete="off" spellcheck="false" /></label>
+          </div>
+          <div class="actions">
+            <button type="button" id="start" class="primary" data-t="start"></button>
+            <button type="button" id="continue" class="hidden" data-t="continue"></button>
+            <button type="button" id="watch" data-t="watch"></button>
+          </div>
+        </div>
+        <h3 class="label" data-t="examplesTitle"></h3>
+        <ul id="examples" class="examples"></ul>
+        <p class="fine" data-t="ticketFine"></p>
+      </div>
+    </section>
+
+    <main id="game" class="game hidden">
+      <section class="col talk">
+        <nav id="stalls" class="stalls" data-t-aria="stallsLabel"></nav>
+        <article class="sheet entry">
+          <header id="stallhead" class="stallhead"></header>
+          <ol id="convo" class="convo" aria-live="polite"></ol>
+          <div id="table" class="bill hidden"></div>
+          <div id="chips" class="chips"></div>
+          <div class="say">
+            <label for="input" class="label" data-t="sayLabel"></label>
+            <div class="say-row">
+              <textarea id="input" rows="2" data-t-ph="sayPh" autocomplete="off"></textarea>
+              <button type="button" id="send" class="primary" data-t="send"></button>
+            </div>
+            <p id="preview" class="preview" aria-live="polite"></p>
+          </div>
+          <div class="row small">
+            <label id="voicebox" class="hidden"><span data-t="voiceLabel"></span> <select id="voice"></select></label>
+            <span id="talks" class="talks"></span>
+          </div>
+        </article>
+      </section>
+
+      <aside class="col you">
+        <section class="sheet">
+          <h2 class="head" data-t="youHead"></h2>
+          <div id="purse" class="purse"></div>
+          <table id="mygoods" class="ledger goods"></table>
+        </section>
+        <section class="sheet slip">
+          <h2 class="head" data-t="contractHead"></h2>
+          <div id="contract"></div>
+        </section>
+        <section class="sheet">
+          <h2 class="head" data-t="promisesHead"></h2>
+          <ul id="promises" class="promises"></ul>
+        </section>
+        <section class="sheet closing">
+          <div id="standing" class="standing"></div>
+          <button type="button" id="endday" class="primary wide"></button>
+        </section>
+      </aside>
+
+      <aside class="col board">
+        <section class="sheet">
+          <h2 class="head" data-t="boardHead"></h2>
+          <table id="prices" class="ledger prices"></table>
+        </section>
+        <section class="sheet">
+          <h2 class="head" data-t="todayHead"></h2>
+          <p id="event" class="event"></p>
+          <div id="recap" class="recap"></div>
+          <h3 class="label" data-t="heardHead"></h3>
+          <ul id="rumors" class="rumors"></ul>
+        </section>
+        <section class="sheet">
+          <h2 class="head" data-t="quayHead"></h2>
+          <ol id="market" class="quaylog"></ol>
+        </section>
+      </aside>
+    </main>
+
+    <section id="result" class="result hidden"></section>
+
+    <script type="module">
+var an=Object.defineProperty;var ln=(e,t,n)=>t in e?an(e,t,{enumerable:!0,configurable:!0,writable:!0,value:n}):e[t]=n;var ot=(e,t,n)=>ln(e,typeof t!="symbol"?t+"":t,n);function U(e){return e==="zh"?"zh":"en"}function x(e){return U(e?.lang)}var he=e=>/[㐀-鿿豈-﫿]/.test(e);var y=["salt","amber","dye","wool","spice","iron"],q=[...y,"coin"];function S(e){return e.replace(/([㐀-鿿])([A-Za-z0-9])/g,"$1 $2").replace(/([A-Za-z0-9])([㐀-鿿])/g,"$1 $2")}var me={salt:"\u76D0",amber:"\u7425\u73C0",dye:"\u67D3\u6599",wool:"\u7F8A\u6BDB",spice:"\u9999\u6599",iron:"\u94C1"},it={salt:"\u888B",amber:"\u5757",dye:"\u7F50",wool:"\u6346",spice:"\u5305",iron:"\u952D"},cn={salt:["sack","sacks"],amber:["lump","lumps"],dye:["jar","jars"],wool:["bale","bales"],spice:["pouch","pouches"],iron:["bar","bars"]},dn="\u6587";function K(e){return Number.isInteger(e)?String(e):e.toFixed(1)}var ye=e=>e<0?`\u2212${-e}`:String(e),_=e=>e<0?ye(e):`+${e}`;function R(e,t){return t==="zh"?me[e]:e}function He(e,t,n=2){return t==="zh"?it[e]:cn[e][n===1?0:1]}function un(e,t){return t==="zh"?`${K(e)} ${dn}`:`${K(e)} coin`}function V(e,t,n){return n==="zh"?`${t} ${it[e]}${me[e]}`:`${t} ${e}`}function st(e,t,n){if(e.length===0)return n??(t==="zh"?"\u6CA1\u4EC0\u4E48":"nothing");if(e.length===1)return e[0];let o=e.slice(0,-1).join(t==="zh"?"\u3001":", ");return t==="zh"?S(`${o}\u548C${e[e.length-1]}`):`${o} and ${e[e.length-1]}`}function re(e,t){return st(e.map(n=>R(n,t)),t)}function z(e){return!e||Object.values(e).every(t=>!t)}function D(e,t){let n=[];if(e){for(let o of y)e[o]&&n.push(V(o,e[o],t));e.coin&&n.push(un(e.coin,t))}return st(n,t)}function at(e,t,n,o,r=e.from){let i=t==="zh",s=m=>m===r?i?"\u6211":"I":m===o?i?"\u4F60":"you":n(m),a=m=>i||m===r||m===o?"":"s",c=m=>D(m,t),l=[],d=!z(e.give),u=!z(e.get);if(d||u)if(!u)l.push(i?`${s(e.from)}\u7ED9\u51FA${c(e.give)}`:`${s(e.from)} give${a(e.from)} ${c(e.give)}`);else if(!d)l.push(i?`${s(e.to)}\u7ED9\u51FA${c(e.get)}`:`${s(e.to)} give${a(e.to)} ${c(e.get)}`);else if(r!==e.from&&r!==e.to)l.push(i?`${s(e.from)}\u7ED9\u51FA${c(e.give)}\uFF0C${s(e.to)}\u7ED9\u51FA${c(e.get)}`:`${s(e.from)} give${a(e.from)} ${c(e.give)} and ${s(e.to)} give${a(e.to)} ${c(e.get)}`);else{let m=r===e.from?e.give:e.get,b=r===e.from?e.get:e.give;l.push(i?`\u7528${c(m)}\u6362${c(b)}`:`${c(m)} for ${c(b)}`)}if(e.later){let m=e.later.due;z(e.later.give)||l.push(i?`${s(e.from)}\u5728\u7B2C${m}\u5929\u4EA4\u4ED8${c(e.later.give)}`:`${s(e.from)} deliver${a(e.from)} ${c(e.later.give)} on day ${m}`),z(e.later.get)||l.push(i?`${s(e.to)}\u5728\u7B2C${m}\u5929\u4EA4\u4ED8${c(e.later.get)}`:`${s(e.to)} deliver${a(e.to)} ${c(e.later.get)} on day ${m}`)}return l.length?i?S(l.join("\uFF1B\u4E4B\u540E")):l.join(", then "):i?"\u4EC0\u4E48\u4E5F\u6CA1\u6709":"nothing"}function lt(e,t){let n=t==="zh",o=a=>D(a,t),r=[],i=!z(e.give),s=!z(e.get);return i&&s?r.push(n?`\u6211\u51FA${o(e.give)}\uFF0C\u6362\u4F60\u7684${o(e.get)}`:`I give ${o(e.give)} for your ${o(e.get)}`):i?r.push(n?`\u6211\u7ED9\u4F60${o(e.give)}`:`I give you ${o(e.give)}`):s&&r.push(n?`\u4F60\u7ED9\u6211${o(e.get)}`:`you give me ${o(e.get)}`),e.later&&(z(e.later.give)||r.push(n?`\u7B2C${e.later.due}\u5929\u6211\u518D\u4EA4\u4ED8${o(e.later.give)}`:`I deliver ${o(e.later.give)} on day ${e.later.due}`),z(e.later.get)||r.push(n?`\u7B2C${e.later.due}\u5929\u4F60\u518D\u4EA4\u4ED8${o(e.later.get)}`:`you deliver ${o(e.later.get)} on day ${e.later.due}`)),r.length?n?S(r.join("\uFF0C")):r.join(", and "):n?"\u4EC0\u4E48\u4E5F\u6CA1\u6709":"nothing"}var fn={ship:e=>`A cargo ship from the south ties up, heavy with ${e}. Prices drop.`,storm:e=>`Storm on the strait. No boats get through, and ${e} climbs.`,guild:e=>`The guild posts a big order for ${e}. Buyers line the quay.`,fair:e=>`Fair day in town. Everyone wants ${e}.`,blight:e=>`Bad news from the farms: ${e} will be short this season.`,quiet:()=>"A quiet morning on the quay."},gn={ship:e=>`\u4E00\u8258\u5357\u65B9\u6765\u7684\u8D27\u8239\u9760\u4E86\u5CB8\uFF0C\u6EE1\u8F7D${e}\u3002\u4EF7\u683C\u8DCC\u4E86\u3002`,storm:e=>`\u6D77\u5CE1\u8D77\u4E86\u98CE\u66B4\uFF0C\u8239\u90FD\u8FC7\u4E0D\u6765\uFF0C${e}\u6DA8\u4EF7\u4E86\u3002`,guild:e=>`\u884C\u4F1A\u8D34\u51FA\u4E00\u5927\u7B14${e}\u7684\u8BA2\u5355\uFF0C\u4E70\u5BB6\u6324\u6EE1\u4E86\u7801\u5934\u3002`,fair:e=>`\u57CE\u91CC\u8D76\u96C6\uFF0C\u4EBA\u4EBA\u90FD\u60F3\u8981${e}\u3002`,blight:e=>`\u519C\u5E84\u4F20\u6765\u574F\u6D88\u606F\uFF1A\u8FD9\u4E00\u5B63${e}\u8981\u77ED\u7F3A\u4E86\u3002`,quiet:()=>"\u7801\u5934\u4E0A\u4E00\u4E2A\u5E73\u9759\u7684\u65E9\u6668\u3002"};function Z(e,t,n){return n==="zh"?S(gn[e](re(t,n))):fn[e](re(t,n))}function J(e,t,n,o){let r=re(t,o);if(o==="zh"){let a=`\u7B2C${n}\u5929`,c={ship:`\u542C\u8BF4${a}\u6709\u4E00\u8258\u6EE1\u8F7D${r}\u7684\u8239\u8981\u5230\u3002`,storm:`\u6E14\u6C11\u8BF4${a}\u98CE\u66B4\u4F1A\u5C01\u4F4F\u6D77\u5CE1\uFF0C${r}\u4F1A\u53D8\u5F97\u7A00\u7F3A\u3002`,guild:`\u884C\u4F1A\u6253\u7B97\u5728${a}\u5927\u91CF\u6536\u8D2D${r}\u3002`,fair:`${a}\u7684\u96C6\u5E02\u4F1A\u9700\u8981${r}\u3002`,blight:`\u519C\u5E84\u634E\u6765\u53E3\u4FE1\uFF1A${a}${r}\u4F1A\u77ED\u7F3A\u3002`,quiet:`${a}\u9884\u8BA1\u6CA1\u4EC0\u4E48\u52A8\u9759\u3002`};return S(c[e])}let i=`on day ${n}`;return{ship:`A ship loaded with ${r} is due ${i}.`,storm:`Fishermen say a storm will close the strait ${i}, and ${r} will be scarce.`,guild:`The guild means to buy up ${r} ${i}.`,fair:`The fair ${i} will want ${r}.`,blight:`Word from the farms: ${r} will run short ${i}.`,quiet:`Nothing much is expected ${i}.`}[e]}var pn={dayOf:(e,t)=>`Day ${e} of ${t}.`,whisper:e=>`A dockhand whispers: ${e}`,trade:(e,t,n)=>`${e} and ${t} trade: ${n}.`,kept:(e,t,n,o)=>`${e} ${t?"deliver":"delivers"} ${n} to ${o} as promised.`,broken:(e,t,n,o,r)=>`${e} ${t?"fail":"fails"} to deliver ${n} to ${o}${r?"":t?" (you did not have it)":" (they did not have it)"}.`,close:e=>`The market closes. ${e.map((t,n)=>`${n+1}. ${t.name} ${_(t.profit)}`).join(", ")}.`,says:(e,t)=>`${e}: ${t}`,heardFrom:(e,t)=>`${e} says: ${t}`,you:e=>`You: ${e}`,youName:"You"},hn={dayOf:(e,t)=>S(`\u7B2C${e}\u5929\uFF08\u5171${t}\u5929\uFF09\u3002`),whisper:e=>`\u4E00\u4E2A\u7801\u5934\u5DE5\u4EBA\u6084\u6084\u544A\u8BC9\u4F60\uFF1A${e}`,trade:(e,t,n)=>S(`${e}\u4E0E${t}\u6210\u4EA4\uFF1A${n}\u3002`),kept:(e,t,n,o)=>S(`${e}\u6309\u7EA6\u628A${n}\u4EA4\u7ED9\u4E86${o}\u3002`),broken:(e,t,n,o,r)=>S(`${e}\u6CA1\u80FD\u628A${n}\u4EA4\u7ED9${o}${r?"":t?"\uFF08\u4F60\u624B\u4E0A\u6CA1\u6709\uFF09":"\uFF08\u5BF9\u65B9\u624B\u4E0A\u6CA1\u6709\uFF09"}\u3002`),close:e=>S(`\u6536\u5E02\u4E86\u3002${e.map((t,n)=>`${n+1}. ${t.name} ${_(t.profit)}`).join("\uFF0C")}\u3002`),says:(e,t)=>`${e}\uFF1A${t}`,heardFrom:(e,t)=>S(`${e}\u8BF4\uFF1A`)+t,you:e=>`\u4F60\uFF1A${e}`,youName:"\u4F60"};function T(e){return e==="zh"?hn:pn}function Ie(e){let t=e.match(/^(?:You:\s*|你：\s*)/);return t?e.slice(t[0].length):null}var rt=(e,t)=>y.includes(e)?R(e,t):e==="coin"?t==="zh"?"\u94B1":"coin":e,mn={closed:"the market has closed",unknownMerchant:"unknown merchant",self:"a merchant cannot trade with themselves",unknownGood:e=>`unknown good "${e}"`,badAmount:e=>`bad amount for ${e}`,whole:e=>`${e} comes in whole units`,empty:"the deal is empty",youLack:e=>`you don't have ${e}`,theyLack:(e,t)=>`${e} doesn't have ${t}`,laterDay:"a later delivery must be due on a later day",closesAfter:e=>`the market closes after day ${e}`,join:"; "},yn={closed:"\u5E02\u573A\u5DF2\u7ECF\u6536\u4E86",unknownMerchant:"\u6CA1\u6709\u8FD9\u4E2A\u5546\u4EBA",self:"\u5546\u4EBA\u4E0D\u80FD\u548C\u81EA\u5DF1\u505A\u4E70\u5356",unknownGood:e=>`\u6CA1\u6709\u201C${e}\u201D\u8FD9\u79CD\u8D27`,badAmount:e=>`${rt(e,"zh")}\u7684\u6570\u91CF\u4E0D\u5BF9`,whole:e=>`${rt(e,"zh")}\u53EA\u80FD\u6309\u6574\u4EFD\u7B97`,empty:"\u8FD9\u7B14\u4E70\u5356\u662F\u7A7A\u7684",youLack:e=>S(`\u4F60\u6CA1\u6709${e}`),theyLack:(e,t)=>S(`${e}\u6CA1\u6709${t}`),laterDay:"\u5EF6\u540E\u4EA4\u4ED8\u5FC5\u987B\u5B9A\u5728\u4EE5\u540E\u7684\u67D0\u4E00\u5929",closesAfter:e=>S(`\u5E02\u573A\u5728\u7B2C${e}\u5929\u4E4B\u540E\u5C31\u6536\u4E86`),join:"\uFF1B"};function ct(e){return e==="zh"?yn:mn}var bn={closed:"The market has closed.",bell:"The bell has rung. Trading talk is done for today; end the day to carry on.",self:"Talking to yourself won\u2019t move any goods.",wontWork:e=>`That won\u2019t work: ${e}.`,acceptWhat:"Accept what? I haven\u2019t offered you anything yet.",cantGoThrough:e=>`That deal can\u2019t go through any more: ${e}.`,onlySpare:e=>`I can only spare ${e}. `,noneToSell:e=>`You don\u2019t have any ${e} to sell.`,dontNeed:e=>`I don\u2019t need ${e}.`,didntFollow:'I didn\u2019t follow that. Try "3 salt for 2 amber", "how much for your spice?", "what do you need?" or "any news?".',pickStall:"Pick a stall first, or start with a merchant\u2019s name.",needsNone:"nothing in particular",withDeal:(e,t)=>`${e} ${t}.`,then:(e,t)=>e?`${e} ${t}`:t,sentence:(e,t)=>`${e} ${t}.`},$n={closed:"\u5E02\u573A\u5DF2\u7ECF\u6536\u4E86\u3002",bell:"\u6536\u5DE5\u7684\u949F\u5DF2\u7ECF\u6572\u8FC7\u4E86\u3002\u4ECA\u5929\u7684\u4E70\u5356\u8BDD\u5230\u6B64\u4E3A\u6B62\uFF0C\u7ED3\u675F\u8FD9\u4E00\u5929\u518D\u63A5\u7740\u8C08\u5427\u3002",self:"\u81EA\u8A00\u81EA\u8BED\u53EF\u6362\u4E0D\u6765\u8D27\u3002",wontWork:e=>`\u8FD9\u6837\u4E0D\u884C\uFF1A${e}\u3002`,acceptWhat:"\u63A5\u53D7\u4EC0\u4E48\uFF1F\u6211\u8FD8\u6CA1\u7ED9\u4F60\u5F00\u8FC7\u4EF7\u5462\u3002",cantGoThrough:e=>`\u8FD9\u7B14\u4E70\u5356\u5DF2\u7ECF\u505A\u4E0D\u6210\u4E86\uFF1A${e}\u3002`,onlySpare:e=>S(`\u6211\u53EA\u80FD\u5300\u51FA${e}\u4EFD\u3002`),noneToSell:e=>`\u4F60\u624B\u4E0A\u6CA1\u6709${me[e]}\u53EF\u5356\u3002`,dontNeed:e=>`\u6211\u4E0D\u9700\u8981${me[e]}\u3002`,didntFollow:"\u6211\u6CA1\u542C\u660E\u767D\u3002\u8BD5\u8BD5\u201C3 \u7F50\u67D3\u6599\u6362 2 \u6346\u7F8A\u6BDB\u201D\u201C\u4F60\u7684\u9999\u6599\u591A\u5C11\u94B1\uFF1F\u201D\u201C\u4F60\u7F3A\u4EC0\u4E48\uFF1F\u201D\u6216\u8005\u201C\u6709\u4EC0\u4E48\u6D88\u606F\uFF1F\u201D\u3002",pickStall:"\u5148\u9009\u4E00\u4E2A\u644A\u4F4D\uFF0C\u6216\u8005\u5728\u5F00\u5934\u53EB\u51FA\u5546\u4EBA\u7684\u540D\u5B57\u3002",needsNone:"\u6CA1\u4EC0\u4E48\u7279\u522B\u8981\u7684",withDeal:(e,t)=>S(`${e}${t}\u3002`),then:(e,t)=>e+t,sentence:(e,t)=>S(`${e}${t}\u3002`)};function P(e){return e==="zh"?$n:bn}var wn={"Marta Vey":"\u5C71\u95F4\u519C\u5E84\u6765\u7684\u7F8A\u6BDB\u548C\u67D3\u6599\u3002\u8BF4\u8BDD\u7B97\u8BDD\uFF0C\u4E5F\u8BB0\u5F97\u8C01\u5B88\u8FC7\u4FE1\u7528\u3002","Oskar Brine":"\u7ECF\u8425\u76D0\u7530\u548C\u4E00\u5EA7\u94C1\u5320\u94FA\u3002\u6BCF\u4E00\u6587\u90FD\u8981\u8BA8\u4EF7\uFF0C\u5F88\u5C11\u5148\u5F00\u53E3\u8BA9\u6B65\u3002","Ilse Tamm":"\u591C\u8239\u4E0A\u8FD0\u6765\u7684\u7425\u73C0\u548C\u9999\u6599\u3002\u8BA8\u4EBA\u559C\u6B22\uFF0C\u6D88\u606F\u7075\u901A\uFF0C\u5374\u4E0D\u603B\u8BF4\u5B9E\u8BDD\u3002","Pell Dorran":"\u4E00\u6761\u88C5\u7740\u6742\u8D27\u7684\u6CB3\u9A73\u8239\u3002\u6709\u8010\u5FC3\uFF0C\u8BF4\u8BDD\u76F4\uFF0C\u559C\u6B22\u723D\u5FEB\u7684\u4E70\u5356\u3002",You:"\u521D\u6765\u4E4D\u5230\uFF0C\u5E26\u7740\u4E00\u8F86\u8D27\u8F66\u3001\u4E00\u70B9\u94B1\u548C\u4E00\u5F20\u597D\u8BA2\u5355\u3002"},dt={"Marta Vey":["\u739B\u5854","\u739B\u5C14\u5854","\u9A6C\u5854"],"Oskar Brine":["\u5965\u65AF\u5361"],"Ilse Tamm":["\u4F0A\u5C14\u838E","\u4F0A\u5C14\u4E1D","\u4F0A\u4E3D\u838E"],"Pell Dorran":["\u4F69\u5C14","\u8D1D\u5C14"]},vn={"the abbey":"\u4FEE\u9053\u9662","the shipwright":"\u9020\u8239\u5320","the duke\u2019s steward":"\u516C\u7235\u7684\u7BA1\u5BB6","a glassworks":"\u4E00\u5BB6\u73BB\u7483\u574A","the dyers\u2019 guild":"\u67D3\u5320\u884C\u4F1A","a caravan master":"\u4E00\u4F4D\u5546\u961F\u9996\u9886","the lighthouse keeper":"\u706F\u5854\u770B\u5B88\u4EBA"};function ut(e,t,n){return n==="zh"?wn[e]??t:t}function ft(e,t){return t==="zh"?vn[e]??e:e}function gt(e,t){return t!=="zh"?e:{fair:"\u516C\u9053",hard:"\u5F3A\u786C",sly:"\u72E1\u9EE0",human:""}[e]??e}var be={salt:4,amber:14,dye:9,wool:5,spice:12,iron:7};var $e=[{name:"Marta Vey",personality:"fair",blurb:"Wool and dye from the hill farms. Keeps her word and remembers who kept theirs.",stock:["wool","dye"]},{name:"Oskar Brine",personality:"hard",blurb:"Salt pans and an iron smithy. Haggles every coin and rarely moves first.",stock:["salt","iron"]},{name:"Ilse Tamm",personality:"sly",blurb:"Amber and spice off the night boats. Charming, well informed, not always truthful.",stock:["amber","spice"]},{name:"Pell Dorran",personality:"fair",blurb:"A river barge of mixed cargo. Patient, plain spoken, likes a quick deal.",stock:["iron","wool"]}],kn=["the abbey","the shipwright","the duke\u2019s steward","a glassworks","the dyers\u2019 guild","a caravan master","the lighthouse keeper"];function xn(){return Object.fromEntries(y.map(e=>[e,0]))}function Sn(e,t){let n=e.shuffle(y.filter(s=>!t.includes(s))),o=2+e.int(2),r={},i=0;for(let s of n.slice(0,o)){let a=2+e.int(3);r[s]=a,i+=a*be[s]}return{client:e.pick(kn),needs:r,reward:Math.round(i*(1.5+e.next()*.3))}}function Ae(e,t,n){let o=xn();for(let i of n.stock)o[i]+=5+e.int(4);for(let i of e.shuffle(y.filter(s=>!n.stock.includes(s))).slice(0,2))o[i]+=1+e.int(2);let r=Object.fromEntries(y.map(i=>[i,C(.8+e.next()*.4)]));for(let i of n.stock)r[i]=C(Math.min(r[i],.9));return{id:t,name:n.name,personality:n.personality,blurb:n.blurb,coin:40,goods:o,contract:Sn(e,n.stock),taste:r,trust:{},mood:{},heard:[],haggle:{},opening:0}}var ht={ship:[["spice"],["amber"],["dye"],["salt","iron"]],storm:[["spice","dye"],["amber"],["salt"]],guild:[["iron"],["salt"],["iron","wool"]],fair:[["wool","dye"],["spice"],["amber","dye"]],blight:[["wool"],["dye"]],quiet:[[]]},mt={ship:.65,storm:1.4,guild:1.45,fair:1.3,blight:1.5,quiet:1};function pt(e,t,n,o="en"){let r={};for(let i of t)r[i]=mt[e];return{day:n,kind:e,text:Z(e,t,o),effect:r}}function yt(e){return Object.keys(e.effect)}function bt(e,t,n="en"){let o=[pt("quiet",[],1,n)],r=["ship","storm","guild","fair","blight","quiet"];for(let i=2;i<=t;i++){let s=e.pick(r);o.push(pt(s,e.pick(ht[s]),i,n))}return o}function we(e,t,n,o="en"){return J(e,t,n,o)}function Re(e,t,n,o,r="en"){let i=n.kind,s=Object.keys(n.effect);if(!o){let a=["ship","storm","guild","fair","blight"];do i=e.pick(a),s=e.pick(ht[i]);while(i===n.kind&&Mn(s,Object.keys(n.effect)))}return{id:t,day:n.day,kind:i,goods:s,text:we(i,s,n.day,r),truth:o,direction:mt[i]}}function $t(e,t="en"){return re(e,t)}function Mn(e,t){return e.length===t.length&&e.every(n=>t.includes(n))}function C(e){return Math.round(e*100)/100}var ie=class{constructor(t){ot(this,"state",t);this.state=t>>>0}next(){this.state=this.state+1831565813>>>0;let t=this.state;return t=Math.imul(t^t>>>15,t|1),t^=t+Math.imul(t^t>>>7,t|61),((t^t>>>14)>>>0)/4294967296}int(t){return Math.floor(this.next()*t)}pick(t){if(t.length===0)throw new Error("pick from empty list");return t[this.int(t.length)]}shuffle(t){let n=t.slice();for(let o=n.length-1;o>0;o--){let r=this.int(o+1);[n[o],n[r]]=[n[r],n[o]]}return n}chance(t){return this.next()<t}};function ve(e){let t=2166136261;for(let n=0;n<e.length;n++)t^=e.charCodeAt(n),t=Math.imul(t,16777619);return t>>>0}var h="you",Gn={honor:()=>!0};function xt(e={}){let t=typeof e.seed=="string"?ve(e.seed):(e.seed??Date.now())>>>0,n=new ie(t),o=Be(e.days??8,3,20),r=Be(e.rivals??3,1,$e.length),i=[];if(!e.noHuman){let l=Ae(n,h,{name:e.playerName??"You",personality:"human",blurb:"A newcomer with a cart, a little coin and one good order.",stock:n.shuffle([...y]).slice(0,2)});i.push(l)}(e.noHuman?$e.slice(0,Math.max(2,r)):n.shuffle($e).slice(0,r)).forEach((l,d)=>i.push(Ae(n,`m${d+1}`,l)));for(let l of i)for(let d of i)d.id!==l.id&&(l.trust[d.id]=.7,l.mood[d.id]=0);let a={...be};for(let l of i){let d=l.coin;for(let u of y)d+=l.goods[u]*a[u]*l.taste[u];l.opening=Math.round(d)}let c={version:1,seed:t,rng:n.state,day:1,days:o,prices:a,openingPrices:{...a},merchants:i,promises:[],events:bt(n,o,U(e.lang)),rumors:[],log:[],talkPerDay:Be(e.talkPerDay??6,1,20),talksLeft:0,pending:{},trades:[],over:!1,nextId:1,lang:U(e.lang)};return c.rng=n.state,St(c,Gn),c}function v(e,t){let n=e.merchants.find(o=>o.id===t);if(!n)throw new Error(`no merchant ${t}`);return n}function Ln(e,t){return t==="coin"?e.coin:e.goods[t]}function se(e,t){return t?q.every(n=>(t[n]??0)<=Ln(e,n)+1e-9):!0}function wt(e,t,n){t==="coin"?e.coin=C(e.coin+n):e.goods[t]+=n}function je(e,t,n){if(n)for(let o of q){let r=n[o]??0;r&&(wt(e,o,-r),wt(t,o,r))}}function w(e){return!e||q.every(t=>!(e[t]??0))}function vt(e){let t={};if(!e)return t;for(let n of q){let o=e[n]??0;o&&(t[n]=n==="coin"?C(o):Math.round(o))}return t}function le(e,t){if(!t)return 0;let n=t.coin??0;for(let o of y)n+=(t[o]??0)*e.prices[o];return n}function ae(e,t="en"){return D(e,t)}function W(e,t,n=x(e)){return t===h&&n==="zh"?T("zh").youName:v(e,t).name}function Tn(e,t,n=t.from,o=x(e)){return at(t,o,r=>v(e,r).name,h,n)}function ke(e,t,n=x(e)){return lt(t,n)}function Q(e){return{from:e.to,to:e.from,give:{...e.get},get:{...e.give},later:e.later?{give:e.later.get?{...e.later.get}:void 0,get:e.later.give?{...e.later.give}:void 0,due:e.later.due}:void 0}}function H(e,t,n="en"){let o=ct(n),r=[];if(e.over)return[o.closed];let i=e.merchants.find(c=>c.id===t.from),s=e.merchants.find(c=>c.id===t.to);if(!i||!s)return[o.unknownMerchant];if(i.id===s.id)return[o.self];for(let c of[t.give,t.get,t.later?.give,t.later?.get])if(c)for(let[l,d]of Object.entries(c))q.includes(l)?typeof d!="number"||!Number.isFinite(d)||d<0?r.push(o.badAmount(l)):l!=="coin"&&!Number.isInteger(d)&&r.push(o.whole(l)):r.push(o.unknownGood(l));if(r.length)return r;w(t.give)&&w(t.get)&&w(t.later?.give)&&w(t.later?.get)&&r.push(o.empty);let a=(c,l)=>c.id===h?o.youLack(ae(l,n)):o.theyLack(c.name,ae(l,n));return se(i,t.give)||r.push(a(i,t.give)),se(s,t.get)||r.push(a(s,t.get)),t.later&&(!Number.isInteger(t.later.due)||t.later.due<=e.day?r.push(o.laterDay):t.later.due>e.days&&r.push(o.closesAfter(e.days))),r}function ce(e,t){let n=H(e,t);if(n.length)throw new Error(n.join("; "));let o=v(e,t.from),r=v(e,t.to);je(o,r,t.give),je(r,o,t.get),t.later&&(w(t.later.give)||kt(e,o.id,r.id,vt(t.later.give),t.later.due),w(t.later.get)||kt(e,r.id,o.id,vt(t.later.get),t.later.due)),e.trades.push({day:e.day,offer:structuredClone(t)}),delete e.pending[o.id],delete e.pending[r.id],e.asked&&(delete e.asked[o.id],delete e.asked[r.id]);let i=x(e);A(e,"trade",T(i).trade(W(e,o.id,i),W(e,r.id,i),Tn(e,t,"",i)),[o.id,r.id])}function kt(e,t,n,o,r){e.promises.push({id:`p${e.nextId++}`,from:t,to:n,bundle:o,due:r,status:"open"})}function A(e,t,n,o,r,i){let s={day:e.day,kind:t,text:n,who:o,private:r||void 0};i&&(s.rumor=i),e.log.push(s)}function St(e,t){let n=new ie(e.rng),o=x(e);if(A(e,"day",T(o).dayOf(e.day,e.days)),e.day>1)for(let s of y){let a=e.prices[s];a+=(be[s]-a)*.2,a*=1+(n.next()-.5)*.1,e.prices[s]=Math.max(1,C(a))}let r=e.events.find(s=>s.day===e.day);if(r){for(let[s,a]of Object.entries(r.effect))e.prices[s]=C(e.prices[s]*a);A(e,"event",Z(r.kind,Object.keys(r.effect),o))}for(let s of e.merchants){s.haggle={};for(let a of Object.keys(s.mood))s.mood[a]=C(s.mood[a]*.7)}On(e,t);let i=e.events.find(s=>s.day===e.day+1);if(i)for(let s of e.merchants){if(!n.chance(s.id===h?.6:.55))continue;let a=Re(n,`r${e.nextId++}`,i,n.chance(.75),o);e.rumors.push(a),s.heard.push(a.id),s.id===h&&A(e,"rumor",T(o).whisper(a.text),[h],!0,a.id)}e.talksLeft=e.talkPerDay,e.rng=n.state}function On(e,t){let n=x(e),o=T(n);for(let r of e.promises){if(r.status!=="open"||r.due!==e.day)continue;let i=v(e,r.from),s=v(e,r.to),a=se(i,r.bundle);if(a&&t.honor(e,i,r))je(i,s,r.bundle),r.status="kept",s.trust[i.id]=Math.min(1,(s.trust[i.id]??.7)+.1),s.mood[i.id]=Math.min(1,(s.mood[i.id]??0)+.15),A(e,"promise",o.kept(W(e,i.id,n),i.id===h,ae(r.bundle,n),W(e,s.id,n)),[i.id,s.id]);else{r.status="broken",s.trust[i.id]=(s.trust[i.id]??.7)*.3,s.mood[i.id]=Math.max(-1,(s.mood[i.id]??0)-.7);for(let l of e.merchants)l.id===i.id||l.id===s.id||(l.trust[i.id]=Math.max(0,(l.trust[i.id]??.7)-.15));A(e,"broken",o.broken(W(e,i.id,n),i.id===h,ae(r.bundle,n),W(e,s.id,n),a),[i.id,s.id])}}}function Mt(e,t){if(!e.over){if(e.pending={},e.asked={},e.day>=e.days){Nn(e);return}e.day++,St(e,t)}}function En(e){return Object.entries(e.contract.needs).every(([t,n])=>e.goods[t]>=n)}function De(e,t){let n=En(t),o={...t.goods};if(n)for(let[a,c]of Object.entries(t.contract.needs))o[a]-=c;let r=0;for(let a of y)r+=o[a]*e.prices[a]*t.taste[a];r=C(r);let i=n?t.contract.reward:0,s=Math.round(t.coin+i+r);return{id:t.id,name:t.name,coin:t.coin,contractMet:n,reward:i,goodsValue:r,total:s,profit:s-t.opening}}function Pe(e){return e.merchants.map(t=>De(e,t)).sort((t,n)=>n.profit-t.profit)}function Nn(e){for(let o of e.promises)o.status==="open"&&(o.status="broken");e.over=!0;let t=Pe(e),n=x(e);A(e,"close",T(n).close(t.map(o=>({name:W(e,o.id,n),profit:o.profit}))))}function Be(e,t,n){return Math.max(t,Math.min(n,Math.round(e)))}var F={fair:{minGain:.5,share:.05,concession:.25,lateDiscount:.5,defaultRate:0,lieRate:0,shareTrust:.4,sulkAt:-.6},hard:{minGain:2,share:.15,concession:.12,lateDiscount:.7,defaultRate:0,lieRate:0,shareTrust:.85,sulkAt:-.4},sly:{minGain:1,share:.08,concession:.2,lateDiscount:.5,defaultRate:.45,lieRate:.5,shareTrust:.3,sulkAt:-.7},human:{minGain:0,share:0,concession:0,lateDiscount:0,defaultRate:0,lieRate:0,shareTrust:0,sulkAt:-1}};function Me(e,t,n){let o=e.prices[n];for(let r of t.heard){let i=e.rumors.find(a=>a.id===r);if(!i||i.day<=e.day||!i.goods.includes(n))continue;let s=Math.pow(.8,Math.max(0,e.days-i.day));o*=1+(i.direction-1)*.5*s}return o}function Se(e,t,n){let o=t.contract.needs,r=0,i=0;for(let[d,u]of Object.entries(o))r+=u,i+=Math.min(n.goods[d],u);let s=r?i/r:0,c=1.3+e.day/e.days*1.2,l=n.coin+t.contract.reward*Math.pow(s,c);for(let d of y){let u=n.goods[d]-Math.min(n.goods[d],o[d]??0);l+=Math.max(0,u)*Me(e,t,d)*t.taste[d]}return l}function Ce(e){return{coin:e.coin,goods:{...e.goods}}}function xe(e,t,n,o=1){if(t)for(let r of q){let i=(t[r]??0)*n*o;i&&(r==="coin"?e.coin+=i:e.goods[r]=e.goods[r]+i)}}function j(e,t,n,o={}){let r=n.from===t.id?n:Q(n),i=r.to,s=Se(e,t,Ce(t)),a=Ce(t);if(xe(a,r.give,-1),xe(a,r.get,1),r.later){let c=t.trust[i]??.7;xe(a,r.later.get,1,c),xe(a,r.later.give,-1,o.honorOwn??1)}for(let c of y)if(a.goods[c]<0)return-1/0;if(F[t.personality].defaultRate===0){let c=Hn(e,t.id);if(a.coin<(c.coin??0)-1e-9)return-1/0;for(let l of y)if(a.goods[l]<(c[l]??0))return-1/0}return Se(e,t,a)-s}function Hn(e,t){let n={};for(let o of e.promises)if(!(o.status!=="open"||o.from!==t))for(let[r,i]of Object.entries(o.bundle))n[r]=(n[r]??0)+i;return n}function Ge(e,t){let n=0;for(let o of[t.give,t.get,t.later?.give,t.later?.get])if(o){n+=o.coin??0;for(let r of y)n+=(o[r]??0)*e.prices[r]}return n/2}function Le(e,t,n,o){let r=F[t.personality],i=e.days>1?(e.day-1)/(e.days-1):1,s=r.share*(1-r.lateDiscount*i);s*=Math.max(0,1-r.concession*o);let a=n.from===t.id?n.to:n.from,c=t.mood[a]??0;return s*=1-c*.5,r.minGain*Math.max(.3,1-r.concession*o)+s*Ge(e,n)}function O(e,t){return Math.max(0,e.goods[t]-(e.contract.needs[t]??0))}function X(e,t){return Math.max(0,(e.contract.needs[t]??0)-e.goods[t])}function de(e,t,n,o){let r=Ce(t),i=Se(e,t,r);return r.goods[n]+=o,r.goods[n]<0?1/0:Math.abs(Se(e,t,r)-i)}var In={fair:{accept:["Done. Fair trade.","Shake on it, then.","That works for me."],counter:["Not quite. How about this:","Close. Meet me here:","I can do it like this:"],reject:["That doesn\u2019t work for me, sorry.","I\u2019ll pass on that one."],insulted:["Come now, that\u2019s not a serious offer.","You know that\u2019s worth more than that."],sulk:["I\u2019d rather not deal with you today.","After last time? Not today."],noCredit:["I\u2019ll want that paid now, not promised."],greet:["Morning! What do you need?","Good to see you. Looking for anything?"],offer:["I have a proposal for you:","Here\u2019s a deal that might suit us both:"],noNews:["I haven\u2019t heard anything worth passing on."],news:["Between us, I heard this:","Here\u2019s what the boatmen told me:"],secret:["I keep what I hear to myself, I\u2019m afraid."],notForSale:["That one\u2019s promised elsewhere, I need all of it."],quote:["I could let some go:","For you:"],want:["I\u2019m after a few things:","Truth is, I need"],cantAfford:["I don\u2019t have the coin for that."],bid:["I could use some. I\u2019d pay:","I\u2019ll buy:"],bye:["Safe roads."]},hard:{accept:["Fine. Done.","Agreed. Don\u2019t make me regret it.","Hm. Deal."],counter:["No. This, and not a coin less:","Try again. I\u2019ll take this:","Here\u2019s my price:"],reject:["No.","Not at that price.","I\u2019ve heard better from gulls."],insulted:["Don\u2019t waste my morning.","Is that a joke?"],sulk:["We\u2019re done talking for today.","Find someone else."],noCredit:["Coin on the table. I don\u2019t do promises."],greet:["What.","Make it quick."],offer:["Here\u2019s what I\u2019ll do, once:","One offer:"],noNews:["Nothing."],news:["Fine. I heard:"],secret:["News costs more than you\u2019ve got."],notForSale:["Not selling that."],quote:["My price:","It\u2019ll cost you:"],want:["Maybe I\u2019d take"],cantAfford:["I don\u2019t have it, and I wouldn\u2019t pay that anyway."],bid:["I\u2019ll pay this and no more:","Here\u2019s my bid:"],bye:["Hm."]},sly:{accept:["Lovely. A pleasure, as always.","Done, darling.","You drive a sweet bargain."],counter:["Oh, almost. Make it this and we\u2019re friends:","Let\u2019s sweeten it a little:","For you, I\u2019d do this:"],reject:["Oh, I couldn\u2019t possibly.","Not today, I think."],insulted:["You wound me.","I\u2019ll pretend I didn\u2019t hear that."],sulk:["I\u2019m terribly busy today.","Another time, perhaps."],noCredit:["Promises are pretty things, but I\u2019d like it now."],greet:["There you are. I was hoping you\u2019d come by.","Ah, my favourite newcomer."],offer:["I\u2019ve been saving this for you:","Here\u2019s a little something:"],noNews:["The quay\u2019s been dull, sadly."],news:["Don\u2019t tell a soul, but:","Since you asked so nicely:"],secret:["A lady never tells."],notForSale:["Oh, that\u2019s spoken for."],quote:["Only because it\u2019s you:","A special price:"],want:["I might be tempted by"],cantAfford:["My purse is lighter than it looks."],bid:["I might take some off your hands:","For you, I\u2019d pay:"],bye:["Until tomorrow."]}},An={fair:{accept:["\u6210\u4EA4\u3002\u516C\u5E73\u4E70\u5356\u3002","\u90A3\u5C31\u63E1\u4E2A\u624B\u5427\u3002","\u8FD9\u6837\u6211\u53EF\u4EE5\u3002"],counter:["\u8FD8\u5DEE\u4E00\u70B9\u3002\u8FD9\u6837\u5982\u4F55\uFF1A","\u5F88\u63A5\u8FD1\u4E86\u3002\u54B1\u4EEC\u5404\u8BA9\u4E00\u6B65\uFF1A","\u6211\u53EF\u4EE5\u8FD9\u6837\u505A\uFF1A"],reject:["\u8FD9\u6837\u5BF9\u6211\u4E0D\u5408\u9002\uFF0C\u62B1\u6B49\u3002","\u8FD9\u7B14\u6211\u5C31\u4E0D\u505A\u4E86\u3002"],insulted:["\u5F97\u4E86\u5427\uFF0C\u8FD9\u53EF\u4E0D\u662F\u6B63\u7ECF\u51FA\u4EF7\u3002","\u4F60\u77E5\u9053\u8FD9\u4E1C\u897F\u4E0D\u6B62\u8FD9\u4E2A\u4EF7\u3002"],sulk:["\u4ECA\u5929\u6211\u4E0D\u60F3\u8DDF\u4F60\u6253\u4EA4\u9053\u3002","\u4E0A\u56DE\u90A3\u6837\uFF1F\u4ECA\u5929\u514D\u8C08\u3002"],noCredit:["\u8FD9\u7B14\u6211\u8981\u73B0\u94B1\uFF0C\u4E0D\u8981\u7A7A\u53E3\u8BB8\u8BFA\u3002"],greet:["\u65E9\uFF01\u9700\u8981\u70B9\u4EC0\u4E48\uFF1F","\u89C1\u5230\u4F60\u771F\u597D\u3002\u60F3\u627E\u70B9\u4EC0\u4E48\u5417\uFF1F"],offer:["\u6211\u6709\u4E2A\u63D0\u8BAE\uFF1A","\u8FD9\u7B14\u4E70\u5356\u4E5F\u8BB8\u5BF9\u54B1\u4FE9\u90FD\u5408\u9002\uFF1A"],noNews:["\u6211\u6CA1\u542C\u5230\u4EC0\u4E48\u503C\u5F97\u8BF4\u7684\u3002"],news:["\u54B1\u4FE9\u79C1\u4E0B\u8BF4\uFF0C\u6211\u542C\u8BF4\uFF1A","\u8239\u592B\u4EEC\u662F\u8FD9\u4E48\u8DDF\u6211\u8BF4\u7684\uFF1A"],secret:["\u6211\u542C\u5230\u7684\u4E8B\u90FD\u70C2\u5728\u809A\u5B50\u91CC\uFF0C\u62B1\u6B49\u3002"],notForSale:["\u90A3\u4E2A\u5DF2\u7ECF\u8BB8\u7ED9\u522B\u4EBA\u4E86\uFF0C\u6211\u5168\u90FD\u8981\u7528\u3002"],quote:["\u6211\u53EF\u4EE5\u8BA9\u51FA\u4E00\u4E9B\uFF1A","\u7ED9\u4F60\u7684\u4EF7\uFF1A"],want:["\u6211\u5728\u627E\u8FD9\u51E0\u6837\uFF1A","\u8BF4\u5B9E\u8BDD\uFF0C\u6211\u9700\u8981"],cantAfford:["\u6211\u6CA1\u90A3\u4E48\u591A\u94B1\u3002"],bid:["\u6211\u7528\u5F97\u4E0A\u3002\u6211\u51FA\uFF1A","\u6211\u6536\uFF1A"],bye:["\u4E00\u8DEF\u5E73\u5B89\u3002"]},hard:{accept:["\u884C\u3002\u6210\u4EA4\u3002","\u540C\u610F\u3002\u522B\u8BA9\u6211\u540E\u6094\u3002","\u54FC\u3002\u6210\u4EA4\u3002"],counter:["\u4E0D\u884C\u3002\u5C31\u8FD9\u4E2A\uFF0C\u4E00\u6587\u90FD\u4E0D\u80FD\u5C11\uFF1A","\u518D\u6765\u3002\u6211\u8981\u8FD9\u4E2A\uFF1A","\u6211\u7684\u4EF7\uFF1A"],reject:["\u4E0D\u3002","\u8FD9\u4E2A\u4EF7\u4E0D\u884C\u3002","\u6D77\u9E25\u90FD\u6BD4\u4F60\u51FA\u5F97\u9AD8\u3002"],insulted:["\u522B\u6D6A\u8D39\u6211\u7684\u65E9\u4E0A\u3002","\u5F00\u73A9\u7B11\u5427\uFF1F"],sulk:["\u4ECA\u5929\u5230\u6B64\u4E3A\u6B62\u3002","\u627E\u522B\u4EBA\u53BB\u3002"],noCredit:["\u94B1\u653E\u684C\u4E0A\u3002\u6211\u4E0D\u8D4A\u8D26\u3002"],greet:["\u4EC0\u4E48\u4E8B\u3002","\u5FEB\u8BF4\u3002"],offer:["\u6211\u5C31\u5F00\u8FD9\u4E00\u6B21\u4EF7\uFF1A","\u5C31\u4E00\u4E2A\u4EF7\uFF1A"],noNews:["\u6CA1\u6709\u3002"],news:["\u884C\u5427\u3002\u6211\u542C\u8BF4\uFF1A"],secret:["\u6D88\u606F\u53EF\u6BD4\u4F60\u515C\u91CC\u7684\u94B1\u8D35\u3002"],notForSale:["\u90A3\u4E2A\u4E0D\u5356\u3002"],quote:["\u6211\u7684\u4EF7\uFF1A","\u5F97\u82B1\u4F60\uFF1A"],want:["\u4E5F\u8BB8\u6211\u4F1A\u6536\u70B9"],cantAfford:["\u6211\u6CA1\u90A3\u4E48\u591A\uFF0C\u800C\u4E14\u4E5F\u4E0D\u4F1A\u51FA\u8FD9\u4E2A\u4EF7\u3002"],bid:["\u6211\u51FA\u8FD9\u4E2A\uFF0C\u591A\u4E00\u6587\u90FD\u6CA1\u6709\uFF1A","\u6211\u7684\u51FA\u4EF7\uFF1A"],bye:["\u54FC\u3002"]},sly:{accept:["\u592A\u597D\u4E86\u3002\u4E00\u5982\u65E2\u5F80\uFF0C\u5F88\u6109\u5FEB\u3002","\u6210\u4EA4\uFF0C\u4EB2\u7231\u7684\u3002","\u4F60\u53EF\u771F\u4F1A\u8BA8\u4EF7\u8FD8\u4EF7\u3002"],counter:["\u54CE\u5440\uFF0C\u5C31\u5DEE\u4E00\u70B9\u3002\u6539\u6210\u8FD9\u6837\uFF0C\u54B1\u4EEC\u5C31\u662F\u670B\u53CB\u4E86\uFF1A","\u54B1\u4EEC\u518D\u6DFB\u70B9\u751C\u5934\uFF1A","\u4E3A\u4E86\u4F60\uFF0C\u6211\u613F\u610F\u8FD9\u6837\uFF1A"],reject:["\u54E6\uFF0C\u8FD9\u6211\u53EF\u4E0D\u80FD\u7B54\u5E94\u3002","\u4ECA\u5929\u6050\u6015\u4E0D\u884C\u3002"],insulted:["\u4F60\u771F\u4F24\u6211\u7684\u5FC3\u3002","\u6211\u5C31\u5F53\u6CA1\u542C\u89C1\u3002"],sulk:["\u6211\u4ECA\u5929\u5FD9\u5F97\u5F88\u3002","\u6539\u5929\u5427\u3002"],noCredit:["\u8BB8\u8BFA\u662F\u597D\u770B\uFF0C\u53EF\u6211\u60F3\u73B0\u5728\u5C31\u62FF\u5230\u3002"],greet:["\u4F60\u6765\u5566\u3002\u6211\u6B63\u76FC\u7740\u4F60\u8FC7\u6765\u5462\u3002","\u554A\uFF0C\u6211\u6700\u559C\u6B22\u7684\u65B0\u6765\u7684\u3002"],offer:["\u8FD9\u662F\u6211\u7279\u610F\u7ED9\u4F60\u7559\u7684\uFF1A","\u6709\u4EF6\u5C0F\u4E1C\u897F\u7ED9\u4F60\uFF1A"],noNews:["\u7801\u5934\u4E0A\u51B7\u6E05\u5F97\u5F88\uFF0C\u53EF\u60DC\u3002"],news:["\u522B\u544A\u8BC9\u522B\u4EBA\uFF0C\u4E0D\u8FC7\uFF1A","\u65E2\u7136\u4F60\u95EE\u5F97\u8FD9\u4E48\u5BA2\u6C14\uFF1A"],secret:["\u6DD1\u5973\u4ECE\u4E0D\u591A\u5634\u3002"],notForSale:["\u54E6\uFF0C\u90A3\u4E2A\u5DF2\u7ECF\u6709\u4E3B\u4E86\u3002"],quote:["\u53EA\u56E0\u4E3A\u662F\u4F60\uFF1A","\u7279\u4EF7\uFF1A"],want:["\u8981\u662F\u6709\uFF0C\u6211\u4E5F\u8BB8\u60F3\u8981"],cantAfford:["\u6211\u7684\u94B1\u888B\u6BD4\u770B\u4E0A\u53BB\u8F7B\u3002"],bid:["\u6211\u4E5F\u8BB8\u80FD\u5E2E\u4F60\u8131\u624B\u4E00\u4E9B\uFF1A","\u4E3A\u4E86\u4F60\uFF0C\u6211\u51FA\uFF1A"],bye:["\u660E\u5929\u89C1\u3002"]}},Rn={en:In,zh:An};function G(e,t,n,o="en"){let r=Rn[o][e==="human"?"fair":e][t];return r[Math.abs(Math.floor(n))%r.length]}function I(e,...t){return ve(`${e.seed}:${t.join(":")}`)/4294967296}function B(e,...t){return Math.floor(I(e,...t)*1e3)}function Te(e,t,n){let o=n.from===t.id?n.to:n.from,r=F[t.personality],i=x(e),s=[t.id,o,e.day,t.haggle[o]??0],a=t.mood[o]??0;if(a<=r.sulkAt)return{kind:"reject",say:G(t.personality,"sulk",B(e,...s),i),reason:"sulking"};let c=n.from===t.id?n:Q(n);if(!w(c.later?.get)&&(t.trust[o]??.7)<.3){let M=jn(e,t,c);return M?Bn(e,t,M,s,"noCredit"):{kind:"reject",say:G(t.personality,"noCredit",B(e,...s),i),reason:"no credit"}}let l=j(e,t,c,{honorOwn:ee(t)}),d=t.haggle[o]??0,u=Le(e,t,c,d);if(l>=u)return{kind:"accept",say:G(t.personality,"accept",B(e,...s),i),gain:l};t.haggle[o]=d+1,l<-.35*Ge(e,c)-2&&(t.mood[o]=Math.max(-1,a-.2));let m=Dn(e,t,c,u),b=l<-.35*Ge(e,c)-2;return m?{kind:"counter",say:P(i).then(b?G(t.personality,"insulted",B(e,...s),i):"",G(t.personality,"counter",B(e,...s,"c"),i)),offer:m,gain:j(e,t,m,{honorOwn:ee(t)})}:{kind:"reject",say:G(t.personality,b?"insulted":"reject",B(e,...s),i),reason:"not enough"}}function Bn(e,t,n,o,r){let i=j(e,t,n,{honorOwn:ee(t)});return{kind:"counter",say:G(t.personality,r,B(e,...o),x(e)),offer:n,gain:i}}function jn(e,t,n){let o=v(e,n.to),r=Cn(n.get,n.later?.get);if(!se(o,r))return null;let i={from:t.id,to:o.id,give:{...n.give},get:r,later:n.later?.give?{give:n.later.give,due:n.later.due}:void 0};return H(e,i).length?null:i}function ee(e){return 1-F[e.personality].defaultRate*.6}function Dn(e,t,n,o){let r=v(e,n.to),i=structuredClone(n);i.give={...i.give},i.get={...i.get};let s=()=>j(e,t,i,{honorOwn:ee(t)})>=o,a=()=>H(e,i).length===0&&!(w(i.give)&&w(i.get)&&w(i.later?.give)&&w(i.later?.get));if((i.give.coin??0)>0){for(;!s()&&(i.give.coin??0)>0;)i.give.coin=Math.max(0,(i.give.coin??0)-1);i.give.coin||delete i.give.coin}let c=y.filter(l=>(i.give[l]??0)>0).sort((l,d)=>de(e,t,d,-1)-de(e,t,l,-1));for(let l of c)for(;!s()&&(i.give[l]??0)>1;)i.give[l]=(i.give[l]??0)-1;if(!s()){let l=o-j(e,t,i,{honorOwn:ee(t)}),d=r.coin-(i.get.coin??0),u=Math.ceil(l+.01);u>0&&u<=d&&(i.get.coin=(i.get.coin??0)+u)}for(let l of y){let d=2;for(;!s()&&(i.get[l]??0)>0&&r.goods[l]>(i.get[l]??0)&&d-- >0;)i.get[l]=(i.get[l]??0)+1}return!s()||!a()||Pn(i,n)?null:i}function Pn(e,t){return JSON.stringify(e.give)===JSON.stringify(t.give)&&JSON.stringify(e.get)===JSON.stringify(t.get)&&JSON.stringify(e.later)===JSON.stringify(t.later)}function Cn(e,t){let n={...e??{}};for(let[o,r]of Object.entries(t??{}))n[o]=(n[o]??0)+r;return n}function te(e,t,n){let o=y.filter(i=>X(t,i)>0&&n.goods[i]>0).sort((i,s)=>X(t,s)-X(t,i));for(let i of o){let s=Math.min(X(t,i),n.goods[i],3),a={[i]:s},c=Me(e,t,i)*s*1.05;for(let l of Wn(e,t,c,i)){let d={from:t.id,to:n.id,give:l.now,get:a};if(l.later&&(d.later={give:l.later,due:Math.min(e.days,e.day+2)}),!H(e,d).length&&j(e,t,d,{honorOwn:ee(t)})>=Le(e,t,d,0))return d}}let r=y.filter(i=>O(t,i)>0&&n.goods[i]===0).sort((i,s)=>O(t,s)*e.prices[s]-O(t,i)*e.prices[i]);for(let i of r){let s=Math.min(O(t,i),2),a=Math.ceil(Me(e,t,i)*t.taste[i]*s*1.15+1);if(n.coin<a)continue;let c={from:t.id,to:n.id,give:{[i]:s},get:{coin:a}};if(!H(e,c).length&&j(e,t,c)>=Le(e,t,c,0))return c}return null}function Wn(e,t,n,o){let r=[],i=Math.ceil(n);t.personality==="sly"&&e.day+2<=e.days&&r.push({now:{},later:{coin:Math.ceil(n*1.3)}}),t.coin>=i&&r.push({now:{coin:i}});let s=y.filter(a=>a!==o&&O(t,a)>0).sort((a,c)=>e.prices[c]-e.prices[a]);for(let a of s){let c=Math.ceil(n/e.prices[a]);if(c<=O(t,a))r.push({now:{[a]:c}});else if(t.coin>0){let l=Math.ceil(n-O(t,a)*e.prices[a]);l<=t.coin&&r.push({now:{[a]:O(t,a),coin:l}})}}if(t.coin<i&&e.day+2<=e.days){let a=Math.floor(t.coin/2),c=Math.ceil((i-a)*1.1);r.push({now:a>0?{coin:a}:{},later:{coin:c}})}return r}function Gt(e,t,n,o,r=1){let i=O(t,o);if(i<=0)return null;let s=Math.min(r,i),a=de(e,t,o,-1)*s,c=F[t.personality],l=Math.ceil(a+c.minGain+c.share*2*e.prices[o]*s+.5),d={from:t.id,to:n.id,give:{[o]:s},get:{coin:Math.min(l,Math.max(0,Math.floor(n.coin)))}};return d.get.coin<l&&(d.get.coin=l),d}function Lt(e,t,n,o,r=1){let i=Math.min(r,n.goods[o]);if(i<=0)return null;let s=0;for(let l=0;l<i;l++)s+=de(e,t,o,1);let a=F[t.personality],c=Math.floor(s-a.minGain-a.share*e.prices[o]*i);return c<=0||c>t.coin?null:{from:t.id,to:n.id,give:{coin:c},get:{[o]:i}}}function Tt(e,t,n){let o=y.filter(i=>X(t,i)>0);if(t.personality==="fair")return o;if(t.personality==="hard")return o.slice(0,1);let r=y.find(i=>!o.includes(i)&&O(t,i)===0&&i!==o[0]);return[...o.slice(0,1),...r&&(t.trust[n.id]??.7)<.9?[r]:[]]}function Ot(e,t,n){let o=F[t.personality],r=x(e),i=P(r),s=[t.id,n.id,e.day,"news"],a=e.rumors.filter(l=>t.heard.includes(l.id)&&l.day>e.day).sort((l,d)=>l.day-d.day);if(o.lieRate>0&&I(e,...s)<o.lieRate&&e.day<e.days){let l=y.filter(d=>O(t,d)>0).sort((d,u)=>O(t,u)-O(t,d))[0];if(l){let d=Math.min(e.days,e.day+1+Math.floor(I(e,...s,"d")*2)),u=["storm","guild","fair"],m=u[Math.floor(I(e,...s,"k")*u.length)],b=Fn(e,m,[l],d);return n.heard.push(b.id),{say:i.then(G(t.personality,"news",B(e,...s),r),b.text),rumorId:b.id,lie:!0}}}if((t.trust[n.id]??.7)<o.shareTrust||(t.mood[n.id]??0)<-.3)return{say:G(t.personality,"secret",B(e,...s),r),lie:!1};let c=a[0];return c?(n.heard.includes(c.id)||n.heard.push(c.id),{say:i.then(G(t.personality,"news",B(e,...s),r),we(c.kind,c.goods,c.day,r)),rumorId:c.id,lie:!1}):{say:G(t.personality,"noNews",B(e,...s),r),lie:!1}}function Fn(e,t,n,o){let i={id:`r${e.nextId++}`,day:o,kind:t,goods:n,text:we(t,n,o,x(e)),truth:!1,direction:t==="storm"?1.4:t==="guild"?1.45:1.3};return e.rumors.push(i),i}function qn(e,t,n){let o=F[t.personality];if(o.defaultRate<=0)return!0;let r=n.bundle.coin??0;for(let a of y)r+=(n.bundle[a]??0)*e.prices[a];let i=e.day>=e.days-1?1.5:.6,s=r>8?1:.3;return I(e,n.id,"honor")>=o.defaultRate*i*s}var Et={honor(e,t,n){return t.id===h?!(e.breaking??[]).includes(n.id):qn(e,t,n)}};function Nt(e,t="en"){return e.length?$t(e,t):P(t).needsNone}function Ht(e={}){let t=xt(e);return It(t),t}function ne(e){return e.merchants.filter(t=>t.id!==h)}function It(e){if(e.over||!e.merchants.some(n=>n.id===h))return;let t=v(e,h);for(let n of ne(e)){if(I(e,n.id,e.day,"post")>.6||(n.mood[h]??0)<-.3)continue;let o=te(e,n,t);if(!o)continue;e.pending[n.id]=o;let r=x(e),i=P(r).withDeal(G(n.personality,"offer",I(e,n.id,e.day,"o")*1e3,r),ke(e,o,r));A(e,"say",T(r).says(n.name,i),[n.id,h],!0)}}function zn(e,t,n,o=4){let r={a:t.id,b:n.id,steps:[],done:!1},i=te(e,t,n),s=n;for(let a=0;i&&a<o;a++){let c=Te(e,s,i);if(r.steps.push({by:s.id,offer:i,verdict:c.kind}),c.kind==="accept"){H(e,i).length||(ce(e,i),r.done=!0);break}if(c.kind==="reject")break;i=c.offer,s=s.id===t.id?n:t}return r}function _n(e){let t=ne(e),n=[],o=[...t].sort((r,i)=>I(e,r.id,e.day,"ord")-I(e,i.id,e.day,"ord"));for(let r of o){let i=t.filter(a=>a.id!==r.id);if(!i.length)break;let s=i[Math.floor(I(e,r.id,e.day,"partner")*i.length)];n.push(zn(e,r,s))}return n}function We(e){if(e.over)return[];let t=_n(e);return Mt(e,Et),It(e),t}function At(e){for(;!e.over;)We(e);return e}function Yn(e,t,n){let o={from:h,to:t,give:{...n.give},get:{...n.get}};return n.later&&(o.later={...n.later}),o}function Rt(e,t,n){let o=P(x(e));if(e.over)return{say:o.closed,spent:!1};if(e.talksLeft<=0)return{say:o.bell,spent:!1};let r=v(e,t);if(r.id===h)return{say:o.self,spent:!1};let i=Kn(e,r,n);return i.spent&&e.talksLeft--,i.offer?e.pending[r.id]=i.offer:(i.traded||n.kind==="reject")&&delete e.pending[r.id],(i.traded||n.kind==="reject"||i.offer&&n.kind!=="offer")&&delete e.asked?.[r.id],i.spent&&A(e,"say",T(x(e)).says(r.name,i.say),[r.id,h],!0),i}function Kn(e,t,n){let o=v(e,h),r=x(e),i=P(r),s=l=>I(e,t.id,e.day,e.talksLeft,l)*1e3,a=(l,d)=>G(t.personality,l,s(d),r),c=l=>ke(e,l,r);switch(n.kind){case"offer":{let l=Yn(e,t.id,n),d=H(e,l,r);if(d.length)return{say:i.wontWork(d.join(r==="zh"?"\uFF1B":"; ")),spent:!1};let u=Te(e,t,l);return u.kind==="accept"?(ce(e,l),{say:u.say,traded:!0,spent:!0}):u.kind==="counter"?((e.asked??(e.asked={}))[t.id]=l,{say:i.withDeal(u.say,c(u.offer)),offer:u.offer,spent:!0}):{say:u.say,spent:!0}}case"accept":{let l=e.pending[t.id];if(!l)return{say:i.acceptWhat,spent:!1};let d=H(e,l,r);return d.length?(delete e.pending[t.id],{say:i.cantGoThrough(d.join(r==="zh"?"\uFF1B":"; ")),spent:!0}):(ce(e,l),{say:a("accept","a"),traded:!0,spent:!0})}case"reject":return{say:a("bye","b"),spent:!!e.pending[t.id]};case"price":{let l=Gt(e,t,o,n.good,n.qty);if(!l)return{say:a("notForSale","n"),spent:!0};let d=l.give[n.good]??0;return{say:(d<n.qty?i.onlySpare(d):"")+i.withDeal(a("quote","q"),c(l)),offer:l,spent:!0}}case"bid":{if(o.goods[n.good]<=0)return{say:i.noneToSell(n.good),spent:!1};let l=Lt(e,t,o,n.good,n.qty);return l?{say:i.withDeal(a("bid","q"),c(l)),offer:l,spent:!0}:{say:t.coin<1?a("cantAfford","c"):i.dontNeed(n.good),spent:!0}}case"needs":{let l=Tt(e,t,o),d=te(e,t,o),u=d?i.withDeal(a("offer","o"),c(d)):"";return{say:i.then(i.sentence(a("want","w"),Nt(l,r)),u).trim(),offer:d??void 0,spent:!0}}case"news":{let l=Ot(e,t,o);if(l.rumorId){let d=e.rumors.find(u=>u.id===l.rumorId);A(e,"rumor",T(r).heardFrom(t.name,J(d.kind,d.goods,d.day,r)),[t.id,h],!0,d.id)}return{say:l.say,spent:!0}}case"hello":{let l=te(e,t,o),d=l?i.withDeal(a("offer","o"),c(l)):"";return{say:i.then(a("greet","g"),d).trim(),offer:l??void 0,spent:!0}}default:return{say:i.didntFollow,spent:!1}}}var ze=[["\u6D77\u76D0","salt"],["\u76D0\u5DF4","salt"],["\u98DF\u76D0","salt"],["\u76D0","salt"],["\u7425\u73C0","amber"],["\u871C\u8721","amber"],["\u67D3\u6599","dye"],["\u989C\u6599","dye"],["\u67D3\u5242","dye"],["\u7F8A\u6BDB","wool"],["\u6BDB\u6599","wool"],["\u7F8A\u7ED2","wool"],["\u9999\u6599","spice"],["\u9999\u8F9B\u6599","spice"],["\u80E1\u6912","spice"],["\u94C1\u952D","iron"],["\u94C1\u6761","iron"],["\u94C1\u5757","iron"],["\u751F\u94C1","iron"],["\u719F\u94C1","iron"],["\u94C1","iron"],["salts","salt"],["salt","salt"],["ambers","amber"],["amber","amber"],["dyes","dye"],["dye","dye"],["wools","wool"],["wool","wool"],["fleece","wool"],["spices","spice"],["spice","spice"],["pepper","spice"],["irons","iron"],["iron","iron"]].sort((e,t)=>t[0].length-e[0].length),Pt=["\u94B1\u5E01","\u94DC\u94B1","\u94DC\u677F","\u94DC\u5E01","\u94F6\u5E01","\u91D1\u5E01","\u94F6\u5B50","\u94F6\u4E24","\u5757\u94B1","\u94B1","\u6587","\u679A","\u5143","coins","coin"].sort((e,t)=>t.length-e.length),Ct="\u4E2A\u4EFD\u888B\u5757\u7F50\u6346\u5305\u6761\u952D\u6839\u628A\u65A4\u53EA\u4EF6\u76D2\u7BB1\u6876\u4E32\u4E24",Un="\u5757\u4E24",Vn="\u96F6\u3007\u4E00\u4E8C\u4E24\u4FE9\u4EE8\u4E09\u56DB\u4E94\u516D\u4E03\u516B\u4E5D\u5341\u767E",Fe={\u96F6:0,"\u3007":0,\u4E00:1,\u4E8C:2,\u4E24:2,\u4FE9:2,\u4EE8:3,\u4E09:3,\u56DB:4,\u4E94:5,\u516D:6,\u4E03:7,\u516B:8,\u4E5D:9};function Zn(e){if(!e)return null;if(/^[零〇一二两俩仨三四五六七八九]$/.test(e))return Fe[e];let t=0,n=0,o=!1;for(let r of e)if(r in Fe)n=Fe[r],o=!0;else if(r==="\u5341")t+=(o?n:1)*10,n=0,o=!1;else if(r==="\u767E")t+=(o?n:1)*100,n=0,o=!1;else return null;return t+n}var Jn=ze.map(([e])=>e).join("|"),Qn=new RegExp(String.raw`^\s*(?:[${Ct}]|${Pt.join("|")}|${Jn}|[天日号打]|换|买|卖|给|吧|怎么样|如何|行|呢|成|好|可以|的|[,.?!;]|$)`),Xn=/(?:第|出|付|给|花|用|拿|要|收|卖|买|换|就|改成|算|过|加)\s*$/;function eo(e){return e.replace(/半打/g,"6").replace(new RegExp(`([${Vn}]+)`,"g"),(t,n,o,r)=>{let i="",s=t;s.length>1&&s.endsWith("\u4E24")&&(s=s.slice(0,-1),i="\u4E24");let a=Zn(s);if(a===null)return t;let c=r.slice(o+t.length),l=r.slice(0,o);return/\d\s*$/.test(l)?t:Qn.test(i?i+c:c)||s!=="\u4E00"&&Xn.test(l)?`${a}${i}`:t}).replace(/(\d+)打/g,(t,n)=>String(Number(n)*12))}function to(e){return eo(e.normalize("NFKC").toLowerCase().replace(/[、，]/g,",").replace(/[。．]/g,".").replace(/[“”"‘’「」『』《》()（）]/g,"").replace(/(\d)\s+(?=\d)/g,"$1,").replace(/\s+/g,"")).replace(/^(?:那个|嗯+|喂|嘿|哎|唉|老板娘?|掌柜的?|大姐|大哥|朋友|这位)[,]*/,"").replace(/[.?!~…]+$/,"").replace(/^[,.:;]+/,"")}function Y(e,t=!0){let n={},o=!1,r=null,i="",s=()=>{r!==null&&(t||i&&Un.includes(i))&&(n.coin=(n.coin??0)+r,o=!0),r=null,i=""},a=0;e:for(;a<e.length;){let c=e.slice(a),l=c.match(/^\d+(?:\.\d+)?/);if(l){s(),r=Number(l[0]),a+=l[0].length;continue}for(let[u,m]of ze)if(c.startsWith(u)){n[m]=(n[m]??0)+(r??1),o=!0,r=null,i="",a+=u.length;continue e}for(let u of Pt)if(c.startsWith(u)){r!==null&&(n.coin=(n.coin??0)+r,o=!0),r=null,i="",a+=u.length;continue e}let d=e[a];if(/\s/.test(d)){a++;continue}if(r!==null&&!i&&Ct.includes(d)){i=d,a++;continue}if(d==="\u7684"&&r!==null){a++;continue}s(),a++}return s(),o?n:null}function Oe(e){let t=Y(e,!1);if(!t)return null;let n=y.find(o=>(t[o]??0)>0);return n?{good:n,qty:t[n]??1}:null}var Bt=e=>ze.some(([t])=>e.includes(t)),ue=/第(\d+)[天日]|大后天|后天|明天|明日|(\d+)天(?:以|之)?后|过(\d+)天|(?:收市|闭市|散市)(?:时|前|那天|的时候)?|最后一天/;function no(e,t){if(t[1])return Number(t[1]);if(t[2])return e.day+Number(t[2]);if(t[3])return e.day+Number(t[3]);let n=t[0];return n.startsWith("\u5927\u540E\u5929")?e.day+3:n.startsWith("\u540E\u5929")?e.day+2:n.startsWith("\u660E")?e.day+1:e.days}function oo(e){let t=e.match(ue);if(!t||!t.index)return[e];let n=t.index;for(;n>0&&"\u518D\u5728\u4E8E\u5E76\u4E14\u5C31".includes(e[n-1]);)n--;n>0&&"\u6211\u4F60".includes(e[n-1])&&!(n>1&&"\u7ED9\u5356\u4ED8\u4EA4\u8FD8\u9001\u5E2E\u8BA9\u8DDF\u548C\u5411".includes(e[n-2]))&&n--;let o=e.slice(0,n);return o&&Y(o)?[o,e.slice(n)]:[e]}function ro(e){return/(?:付|给|交|还|送|带|补|运)(?:给)?我/.test(e)||/^你/.test(e.replace(ue,""))?"get":"give"}var io=/成交|一言为定|就这么(?:定|办)|我接受|我同意|我要了|我买了|拍板|说定了|^就这样/,so=/^(?:好的?|好吧|好啊|好呀|好嘞|行|行吧|行啊|可以|可以的|同意|接受|没问题|定了|妥了?|成|那就这样|就这么着|ok|okay|deal|yes)(?:[,.!]|了|吧|啊|呀|的)*/,ao=/^(?:不要|不了|不用|不必|不行|不成|不干|不换|不买|不卖|不划算|不合适|不好|不|算了|算啦|拒绝|没兴趣|免了|免谈|再见|拜拜|告辞|回头见|明天见|下次吧|改天吧|改天|谢谢|多谢|谢了|太贵|太高|太少|太低|太黑|好贵|贵了|no|nope|bye)/,lo=/消息|新闻|传闻|传言|风声|听说了?(?:什么|啥)|听到(?:了)?(?:什么|啥)|听见(?:什么|啥)|新鲜事|八卦|小道|行情|(?:什么|啥)动静|有啥事/,co=/(?:缺|需要|想要|要|收|找|想买|买|在找|在收|缺少)(?:些|点)?(?:什么|啥|哪些|哪几样)(?![价换])|有什么需要|需要点什么|要点什么|缺点什么/,Wt=/多少钱|多少文|多少枚|多少|几个钱|几文|几钱|什么价|啥价|价钱|价格|怎么卖|如何卖|卖多少|卖几|要多少|开个价|报个价|开价|报价|怎么算|贵不贵|值多少|值几/,uo=/^(?:你好|您好|早上好|早安|上午好|下午好|晚上好|早|嗨|哈喽|哈啰|喂|嘿|幸会|久仰|hi|hello)/,fo=[[/卖给你|卖你/,"sellTo"],[/卖给我|卖我/,"buyFrom"],[/换取|换回|来换|交换|换|兑/,"swap"],[/买下|来买|购买|买/,"buy"]],jt=/给我|卖给我|卖我|让我|交给我|送我|我要|我买|^买|^来|你先给/,qe=/我给|给你|我付|付你|我出|^出|先付|^付|我用|^用|^拿|我拿/;function Ft(e,t,n){let o=to(t);if(!o)return{kind:"hello"};let r=!/\d/.test(o)&&!Bt(o);if(r&&io.test(o)&&!/不成交|不接受|不同意|不要了/.test(o))return{kind:"accept"};if(r&&ao.test(o)&&!/^不错/.test(o))return{kind:"reject"};if(r&&so.test(o))return{kind:"accept"};if(lo.test(o))return{kind:"news"};if(!Bt(o)&&co.test(o))return{kind:"needs"};let i=go(o);if(i)return i;if(Wt.test(o)&&!/换.*换/.test(o)){let l=Oe(o);if(l)return{kind:"price",...l}}let s=po(e,o,n);if(s)return s;let a=ho(e,o,n);if(a)return a;let c=o.match(/^(?:我(?:想|要|打算|可以)?|想|打算)(?:卖|出售|出手)(?:给你|你)?(.+)$|^(?:卖给你|卖你)(.+)$/);if(c){let l=Oe(c[1]??c[2]);if(l)return{kind:"bid",...l}}if(/^(?:你)?(?:这儿|这里)?(?:有|卖|还有)(?:没有)?.+(?:吗|么|没有|没|不)?$/.test(o)||/^(?:我)?(?:想|要|想要|需要|打算)?(?:买|来|要)/.test(o)){let l=Oe(o);if(l)return{kind:"price",...l}}return uo.test(o)?{kind:"hello"}:{kind:"unknown",text:t.trim()}}function go(e){let t=Oe(e);return t?/我的/.test(e)&&!/你的/.test(e)&&(Wt.test(e)||/[吗么]$|收|买|要不要/.test(e))?{kind:"bid",...t}:/(?:出|给|开|付)(?:个)?(?:多少|什么价|啥价|个价|几)/.test(e)&&!/换/.test(e)?{kind:"bid",...t}:/(?:收|买|要)不(?:收|买|要)|(?:收|买)(?:点)?我(?:的)?/.test(e)?{kind:"bid",...t}:/^我(?:这儿|这里|手上|手里)?有.+(?:要|收|买)(?:不要|不收|不买|吗|么|不)/.test(e)?{kind:"bid",...t}:null:null}function po(e,t,n){let o=t.match(/^(?:好|行|那|那就|那么|就|要不|不如|改成|换成|算|算你|给你|我出|出|我给|我付|最多|顶多|这样吧|这样|,)*(\d+)(?:个|枚|文|块|元|两)?(?:钱|钱币|铜钱|coin|coins)?(?:吧|怎么样|如何|行吗|行不行|可以吗|可以不|好吗|呢|成吗|成不成|行|好了|得了|算了|就成交|成交|吗|,)*$/);return!o||!n?null:_e(e,n,Number(o[1]))}function ho(e,t,n){let o=t.split(/[,;]|然后|之后再/).filter(Boolean).flatMap(oo),r,i=[];for(let c of o){let l=c.match(ue);if(l){let d=Y(c.replace(ue,""));if(d){let u=no(e,l);r=ro(c)==="get"?{get:d,due:u}:{give:d,due:u};continue}}i.push(c.replace(ue,""))}let s=i.join(",");for(let[c,l]of fo){let d=s.match(c);if(!d||d.index===void 0)continue;let u=s.slice(0,d.index),m=s.slice(d.index+d[0].length),b=Y(u),M=Y(m),E=!1;if(!b&&M&&/,/.test(m)){let[rn,...sn]=m.split(",");b=Y(rn),M=Y(sn.join(",")),E=!0}if(!b||!M||E&&l==="swap")continue;let L,N;return l==="buyFrom"||l==="buy"&&E?[L,N]=[M,b]:[L,N]=[b,M],l==="swap"&&(/你的/.test(u)&&!/我的/.test(u)||/我的/.test(m)&&!/你的/.test(m))&&([L,N]=[N,L]),l==="swap"&&([L,N]=Dt(e,n,L,N)),{kind:"offer",give:L,get:N,later:r}}let a=i.map(c=>({c,b:Y(c)})).filter(c=>!!c.b);if(a.length===2){let c=u=>jt.test(u)?"get":qe.test(u)?"give":null,[l,d]=[c(a[0].c),c(a[1].c)];if(l&&!d&&(d=l==="get"?"give":"get"),d&&!l&&(l=d==="get"?"give":"get"),l&&d&&l!==d){let u=l==="give"?a[0].b:a[1].b,m=l==="get"?a[0].b:a[1].b;return{kind:"offer",give:u,get:m,later:r}}return null}if(a.length===1){let{c,b:l}=a[0],d={};for(let u of y)l[u]&&(d[u]=l[u]);if(l.coin&&Ee(d)&&!r){if(/卖给你|卖你|我卖/.test(c))return{kind:"offer",give:d,get:{coin:l.coin}};if(/买|卖给我|卖我|给我|我要|卖不卖|卖吗/.test(c))return{kind:"offer",give:{coin:l.coin},get:d};let[u,m]=Dt(e,n,d,{coin:l.coin});return u===d&&!mo(e,d)?null:{kind:"offer",give:u,get:m}}if(r){if(jt.test(c)||r.give&&!qe.test(c))return{kind:"offer",give:{},get:l,later:r};if(qe.test(c)||r.get)return{kind:"offer",give:l,get:{},later:r}}}return null}function Dt(e,t,n,o){if(!t||!Ee(n)||!Ye(o))return[n,o];let r=e.merchants.find(a=>a.id===h),i=e.merchants.find(a=>a.id===t),s=y.find(a=>(n[a]??0)>0);return r&&i&&r.goods[s]<(n[s]??0)&&i.goods[s]>=(n[s]??0)?[o,n]:[n,o]}function mo(e,t){let n=e.merchants.find(o=>o.id===h);return!!n&&y.every(o=>(t[o]??0)<=n.goods[o])}var Ke={a:1,an:1,one:1,single:1,two:2,pair:2,couple:2,three:3,few:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,dozen:12,fifteen:15,twenty:20,thirty:30,forty:40,fifty:50},qt={salt:"salt",salts:"salt",amber:"amber",ambers:"amber",dye:"dye",dyes:"dye",wool:"wool",wools:"wool",fleece:"wool",fleeces:"wool",spice:"spice",spices:"spice",pepper:"spice",iron:"iron",irons:"iron"},yo=["coin","coins","silver","crown","crowns","mark","marks","money","gold","cash"],bo=["sack","sacks","lump","lumps","jar","jars","bale","bales","pouch","pouches","bar","bars","units","unit","pieces","piece","of","your","my","some","the","more"];function $o(e){return e.normalize("NFKC").toLowerCase().replace(/[‘’]/g,"'").replace(/(\d+)\s*c\b/g,"$1 coin").replace(/[!?.;]+$/g,"").replace(/\s+/g," ").trim()}var wo=String.raw`(?:(?:hey|hi|ok|okay|so|well)[,\s]+|(?:嘿|喂|哎|嗨|你好|您好|早上好|早)[,，、\s]*)`;function vo(e,t){let n=t.normalize("NFKC").trim();for(let o of e.merchants){if(o.id===h)continue;let r=o.name.split(" ")[0].toLowerCase(),s=[o.name.toLowerCase(),r,...dt[o.name]??[]].map(ko).join("|"),a=new RegExp(`^${wo}?(${s})(?![a-z])(?:[,:\uFF0C\uFF1A\u3001]|\\s)*`,"i"),c=n.match(a);if(c)return{to:o.id,rest:n.slice(c[0].length)}}return{rest:n}}function ko(e){return e.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}function oe(e,t="coin"){let n=e.replace(/,/g," , ").split(/\s+/).filter(Boolean),o={},r=null,i=!1;for(let s=0;s<n.length;s++){let a=n[s].replace(/[^a-z0-9.]/g,"").replace(/\.+$/,"");if(a){if(/^\d+(\.\d+)?$/.test(a)){r=Number(a);continue}if(a in Ke&&!(a==="a"&&r!==null)){r=a==="dozen"&&(n[s-1]==="half"||n[s-2]==="half")?6:Ke[a];continue}if(a in qt){let c=qt[a];o[c]=(o[c]??0)+(r??1),r=null,i=!0;continue}if(yo.includes(a)){r!==null&&(o.coin=(o.coin??0)+r,i=!0),r=null;continue}bo.includes(a)||a==="and"||a==="plus"||a==="half"||(r!==null&&t==="coin"&&(o.coin=(o.coin??0)+r,i=!0),r=null)}}return r!==null&&t==="coin"&&(o.coin=(o.coin??0)+r,i=!0),i?o:null}function fe(e){let t=oe(e,null);if(!t)return null;let n=y.find(o=>(t[o]??0)>0);return n?{good:n,qty:t[n]??1}:null}function xo(e,t){let n=String.raw`(?:on\s+day\s+(\d+)|tomorrow|in\s+(\w+)\s+days?|(?:at|by)\s+(?:the\s+)?(?:close|end))`,o=new RegExp(String.raw`(?:,|\band\b|\bthen\b)?\s*(?:i'?ll|i\s+will|i\s+can|i'?d|i)\s+(?:pay|give|deliver|bring|send)\s+(?:you\s+)?(?:the\s+rest,?\s*)?(.+?)\s+${n}`),r=new RegExp(String.raw`(?:,|\band\b|\bthen\b)?\s*(?:you\s+(?:can\s+|could\s+)?(?:pay|give|deliver|bring|send)(?:\s+me)?)\s+(.+?)\s+${n}`),i=new RegExp(String.raw`\b(?:and|plus|then)\s+(?:the\s+rest\s*,?\s*)?((?:\d+|\w+)\s*(?:coin|coins|salt|amber|dye|wool|spice|iron)?)\s+${n}`);for(let[s,a]of[[r,"get"],[i,"give"],[o,"give"]]){let c=t.match(s);if(!c)continue;let l=oe(c[1]);if(!l)continue;let d=e.day+1;return c[2]?d=Number(c[2]):c[3]?d=e.day+(Number(c[3])||Ke[c[3]]||1):/close|end/.test(c[0])&&(d=e.days),{rest:(t.slice(0,c.index)+t.slice((c.index??0)+c[0].length)).trim().replace(/(?:,|\band|\bthen|\bnow)+\s*$/,"").trim(),later:a==="give"?{give:l,due:d}:{get:l,due:d}}}return{rest:t}}function Ue(e,t,n){let o=vo(e,t),r=o.to??n,i=he(o.rest)?Ft(e,o.rest,r):So(e,$o(o.rest),r);return{to:r,intent:i}}function So(e,t,n){if(!t)return{kind:"hello"};if(/^(deal|yes|yep|yeah|ok|okay|agreed|accept(ed)?|done|sure|fine|sold|shake on it|you'?ve got a deal|i'?ll take (it|that)|sounds good|let'?s do it)\b/.test(t)&&!/\bfor\b|\d/.test(t))return{kind:"accept"};if(/^(no|nope|nah|pass|reject|not interested|no deal|no thanks|too (much|high|steep|dear|expensive|pricey|rich)|that'?s too (much|high|steep|dear|expensive)|forget it|never mind|bye|goodbye|good ?bye|see you|farewell|later|thanks|thank you|cheers)\b/.test(t)&&!/\bfor\b/.test(t))return{kind:"reject"};if(/\b(news|rumou?rs?|gossip|heard anything|hear anything|what'?s going on|anything new|what'?s the word)\b/.test(t))return{kind:"news"};if(/\b(what do you (need|want)(?! for)|what are you (after|looking for|buying)|need anything|want anything|what'?s on your list|what are you short)\b/.test(t))return{kind:"needs"};let o=t.match(/\b(?:what would you pay|how much would you (?:pay|give)|what will you (?:pay|give)|would you buy|want to buy|buy (?:some of )?my)\b(.*)/);if(o){let l=fe(o[1]);if(l)return{kind:"bid",...l}}let r=t.match(/\b(?:how much (?:for|is|are|do you want for)?|what'?s your price (?:for|on)?|price (?:for|of|on)|what would you (?:take|want|charge) for|what do you want for|cost)\b(.*)/);if(r&&!/\bfor\b.*\bfor\b/.test(t)){let l=fe(r[1]);if(!l){let d=fe(t),u=r[1].match(/\b(\d+)\b/);d&&(l={good:d.good,qty:u?Number(u[1]):d.qty})}if(l)return{kind:"price",...l}}let i=Mo(e,t,n);if(i)return i;let s=Go(e,t,n);if(s)return s;let a=t.match(/^(?:do you (?:have|sell|carry|stock|got)|got any|have you got|any|i'?d like|i want|i need|i'?m after|looking for|can i have)\b(.*)$|^(.*)\bplease$/);if(a){let l=fe(a[1]??a[2]??"");if(l)return{kind:"price",...l}}let c=t.match(/^(?:can i |could i |i'?d like to |i want to )?(?:buy|get)\s+(.+)$/);if(c){let l=fe(c[1]);if(l)return{kind:"price",...l}}return/^(hi|hello|hey|morning|good (morning|day|evening)|greetings|ahoy)\b/.test(t)?{kind:"hello"}:{kind:"unknown",text:t}}function Mo(e,t,n){let o=t.match(/^(?:how about|what about|ok(?:ay)?|fine|make it|say|would you take|will you take|i'?ll (?:do|pay|give you|take)|i can do|i could do|meet me at|let'?s say)?[,\s]*(\d+)(?:\s*(?:coin|coins|silver|crowns))?(?:\s+then)?(?:\s*(?:for it|for that|instead))?$/);return!o||!n?null:_e(e,n,Number(o[1]))}function _e(e,t,n){let o=e.pending[t];if(!o)return null;let r={...o.get},i={...o.give},s=o.later?{give:o.later.get,get:o.later.give,due:o.later.due}:void 0,a=e.asked?.[t];if(a&&(r.coin&&a.give.coin||i.coin&&a.get.coin)&&(r={...a.give},i={...a.get},s=a.later?{...a.later}:void 0),r.coin)r.coin=n;else if(i.coin)i.coin=n;else return null;return{kind:"offer",give:r,get:i,later:s}}function Go(e,t,n){let{rest:o,later:r}=xo(e,t),i=o.replace(/^(?:how about|what about|would you take|would you do|will you take|i propose|i offer|counter:?|ok(?:ay)?,?|fine,?|then)\s+/,"").trim(),s=i.split(/\s+(?:for|in exchange for|in return for|and you give me|if you give me|against)\s+/),a=null,c=null;if(s.length>=2){let l=s[0],d=s.slice(1).join(" for "),u=/\b(?:sell me|give me|let me have|i'?ll (?:buy|take)|i (?:want|need|would like|'?d like)|can i (?:buy|have|get)|i'?d (?:buy|take))\b/.test(l);l=l.replace(/^.*?\b(?:i'?ll|i will|i can|i could|let me|i'?d)?\s*(?:give|offer|pay|trade|swap|sell|buy|take|want|need|like|have|get)(?:\s+(?:you|me))?\s+/,"");let m=oe(l),b=oe(d);if(!m||!b)return null;if(u?(c=m,a=b):(a=m,c=b),(/^\s*your\b/.test(l)||/^\s*my\b/.test(d))&&([a,c]=[c,a]),n&&a&&c&&Ee(a)&&Ye(c)){let M=e.merchants.find(N=>N.id===h),E=e.merchants.find(N=>N.id===n),L=y.find(N=>(a[N]??0)>0);M&&E&&M.goods[L]<(a[L]??0)&&E.goods[L]>=(a[L]??0)&&([a,c]=[c,a])}}else{let l=i.match(/^(?:i'?ll |i can |i could )?(?:sell|give|offer)\s+(?!me\b)(?:you\s+)?(.+)$/);if(l&&!r){let d=oe(l[1],null),u=d&&y.find(m=>(d[m]??0)>0);if(u)return{kind:"bid",good:u,qty:d[u]}}if(r){let d=i.match(/(?:give|sell|let me have)\s+me\s+(.+?)(?:\s+now)?$/),u=d?oe(d[1]):null;if(u)return{kind:"offer",give:{},get:u,later:r}}return null}return{kind:"offer",give:a??{},get:c??{},later:r}}function Ee(e){return!e.coin&&y.some(t=>(e[t]??0)>0)}function Ye(e){return(e.coin??0)>0&&y.every(t=>!(e[t]??0))}var Lo={docTitle:"Saltmarket \xB7 a harbour market daybook",brand:"Saltmarket",brandSub:"Harbour market daybook",langLabel:"Language",gaugeLabel:"Market days",gaugeTalks:"Talks today",dayOf:(e,t)=>`Day ${e} of ${t}`,closed:"The market has closed",dayCell:e=>`Day ${e}`,talksLeft:(e,t)=>`${e} of ${t} talks left today`,setupLabel:"Folio 1 \xB7 Arrival",setupTitle:"A cart, a little coin, and one good order to fill.",lede:"You arrive at the harbour market and haggle in plain words with the merchants on the quay. Each keeps their own books, hears their own rumours, and remembers how you treated them.",rulesTitle:"Terms of the market",rules:["Fill your contract before the market closes, or it pays nothing.","Type deals the way you would say them. The line under the box shows how your words were read before you send them.","Six talks a day. End the day and the merchants trade among themselves at dusk; the next morning brings an event and new rumours.","Your score is your profit over what your stall was worth on the first morning."],examplesTitle:"Things you can say",examples:["3 dye for 2 wool","how much for your amber?","Marta, what do you need?","any news?","give me 2 iron now, I'll pay 15 coin on day 4","deal"],ticketTitle:"Open the books",daysLabel:"Market days",seedLabel:"Seed",seedPh:"random",start:"Open your stall",continue:"Continue saved game",watch:"Watch the merchants trade alone",ticketFine:"Switch language at the top right at any time. The ledgers and cards change at once; lines already in the daybook stay in the language they were written in.",boardHead:"Price board",boardGood:"Good",boardPrice:"Price",boardSince:"Since day 1",todayHead:"Today",recapHead:"Since yesterday",heardHead:"What you have heard",heardFrom:"Heard",heardDockhand:"A dockhand",heardNone:"Nothing yet. Ask around: any news?",quayHead:"On the quay",quayNone:"Nothing has changed hands yet.",logDay:e=>`day ${e}`,stallsLabel:"Merchants on the quay",hasOffer:"has an offer for you",mood:{bad:"doesn\u2019t trust you",cold:"cold with you",good:"friendly",neutral:"neutral"},stockHead:"On the stall",stockNone:"nothing on the stall",coinWord:"coin",notYet:e=>`You haven\u2019t spoken to ${e} yet. Say hello, or make an offer.`,convoLabel:e=>`Conversation with ${e}`,billHead:"On the table",billFrom:e=>`from ${e}`,billGive:"You give",billGet:"You receive",billNothing:"nothing",billLater:e=>`On day ${e}`,billYouDeliver:"you deliver",billTheyDeliver:"they deliver",billWorth:"Change to your worth, by your books",billCoin:"coin",accept:"Accept",decline:"Decline",counterHint:"or type a counter below",sayLabel:"What you say",sayPh:"Say something, e.g. 10 coin for 2 wool",send:"Say it",voiceLabel:"Merchants played by",voiceLocal:"built-in merchants",voiceMock:"offline model stand-in",chipNeeds:"What do you need?",chipNews:"Any news?",chipPrice:e=>`How much for ${e}?`,chipBid:e=>`What would you pay for my ${e}?`,previewTo:e=>` (to ${e})`,intent:{offer:e=>`Offer: ${e}`,acceptOn:"Accept the deal on the table",acceptNone:"Accept (there is nothing on the table)",rejectOn:"Turn down the deal on the table",rejectNone:"Say goodbye",price:e=>`Ask their price for ${e}`,bid:(e,t,n)=>`Ask what they'd pay for ${e} of your ${t}`,needs:"Ask what they need",news:"Ask for news",hello:"Say hello",unknown:"Not sure what that means yet"},youGive:e=>`you give ${e}`,youGet:e=>`you get ${e}`,youDeliver:(e,t)=>`you deliver ${e} on day ${t}`,theyDeliver:(e,t)=>`they deliver ${e} on day ${t}`,partsJoin:", ",pickStall:"Pick a stall first.",unreachable:e=>`Couldn\u2019t reach the model (${e}), so a built-in merchant answered.`,youHead:"Your stall",purse:"Purse",goodsGood:"Good",goodsHave:"Have",goodsNeed:"Need",contractHead:"Your contract",orderNo:e=>`Order no. ${e}`,orderFor:e=>`For ${e}`,orderPays:e=>`Pays ${e} coin at the close if all of it is there.`,onQuay:e=>`On the quay: ${e}`,nobodyHas:"Nobody has any on their stall",filled:"Filled. Keep these goods until the close.",notFilled:"Not filled yet.",stampFilled:"Filled",stampOpen:"Open",promisesHead:"Promises",promisesNone:"None. A deal can include a delivery on a later day.",youOwe:(e,t)=>`You owe ${e} ${t}`,owesYou:(e,t)=>`${e} owes you ${t}`,promiseDue:e=>`day ${e}`,promiseStatus:{open:"open",kept:"kept",broken:"broken"},keepIt:"keep it",standing:"If the market closed now",profitWord:"profit",endDay:"End the day",closeMarket:"Close the market",resultLabel:"Final folio \xB7 the close",headFirst:"You finished first on the quay.",headPlace:e=>`You finished ${["first","second","third","fourth","fifth"][e]??`number ${e+1}`}.`,headWatch:"The merchants traded on their own.",colRank:"No.",colMerchant:"Merchant",colProfit:"Profit",colContract:"Contract",contractFilled:e=>`filled (${e})`,contractMissed:"missed",summary:(e,t,n)=>`${e} trades, ${t} broken promise${t===1?"":"s"}${n===null?"":`, ${n} false rumour${n===1?"":"s"} reached you`}.`,again:"Play again",sameSeed:"Same market again",dealsHead:"Your deals",colDay:"Day",colWith:"With",colDeal:"Deal",colAtClose:"At close",gave:e=>`gave ${e}`,got:e=>`got ${e}`,owed:(e,t)=>`owed ${e} on day ${t}`,dealJoin:"; ",noDeals:"You made no deals this market.",dealsNote:"Valued at the closing prices. A deal can lose on paper and still be worth it if it filled your contract."},To={docTitle:"Saltmarket \u76D0\u5E02 \xB7 \u6E2F\u53E3\u96C6\u5E02\u6D41\u6C34\u8D26",brand:"Saltmarket",brandSub:"\u6E2F\u53E3\u96C6\u5E02\u6D41\u6C34\u8D26",langLabel:"\u8BED\u8A00",gaugeLabel:"\u96C6\u5E02\u65E5",gaugeTalks:"\u4ECA\u65E5\u4EA4\u8C08",dayOf:(e,t)=>`\u7B2C${e}\u5929\uFF08\u5171${t}\u5929\uFF09`,closed:"\u5E02\u573A\u5DF2\u7ECF\u6536\u4E86",dayCell:e=>`\u7B2C${e}\u5929`,talksLeft:(e,t)=>`\u4ECA\u5929\u8FD8\u80FD\u8C08${e}\u6B21\uFF08\u5171${t}\u6B21\uFF09`,setupLabel:"\u7B2C\u4E00\u9875 \xB7 \u521D\u5230\u7801\u5934",setupTitle:"\u4E00\u8F86\u8D27\u8F66\uFF0C\u4E00\u70B9\u94B1\uFF0C\u4E00\u5F20\u8981\u4EA4\u7684\u597D\u8BA2\u5355\u3002",lede:"\u4F60\u6765\u5230\u6E2F\u53E3\u96C6\u5E02\uFF0C\u7528\u5E73\u5E38\u8BF4\u8BDD\u7684\u65B9\u5F0F\u548C\u7801\u5934\u4E0A\u7684\u5546\u4EBA\u8BA8\u4EF7\u8FD8\u4EF7\u3002\u6BCF\u4E2A\u5546\u4EBA\u90FD\u6709\u81EA\u5DF1\u7684\u8D26\u672C\uFF0C\u542C\u5230\u5404\u81EA\u7684\u4F20\u95FB\uFF0C\u4E5F\u8BB0\u5F97\u4F60\u662F\u600E\u4E48\u5BF9\u5F85\u4ED6\u4EEC\u7684\u3002",rulesTitle:"\u96C6\u5E02\u7684\u89C4\u77E9",rules:["\u6536\u5E02\u524D\u628A\u8BA2\u5355\u51D1\u9F50\uFF0C\u4E0D\u7136\u4E00\u6587\u4E5F\u62FF\u4E0D\u5230\u3002","\u600E\u4E48\u8BF4\u8BDD\u5C31\u600E\u4E48\u5199\u4E70\u5356\u3002\u53D1\u51FA\u4E4B\u524D\uFF0C\u8F93\u5165\u6846\u4E0B\u9762\u90A3\u4E00\u884C\u4F1A\u544A\u8BC9\u4F60\u8FD9\u53E5\u8BDD\u88AB\u8BFB\u6210\u4E86\u4EC0\u4E48\u3002","\u6BCF\u5929\u80FD\u8C08\u516D\u6B21\u3002\u7ED3\u675F\u4E00\u5929\u540E\uFF0C\u5546\u4EBA\u4EEC\u4F1A\u5728\u9EC4\u660F\u4E92\u76F8\u4EA4\u6613\uFF1B\u7B2C\u4E8C\u5929\u65E9\u4E0A\u4F1A\u6709\u65B0\u4E8B\u4EF6\u548C\u65B0\u4F20\u95FB\u3002","\u5F97\u5206\u662F\u4F60\u7684\u76C8\u5229\uFF1A\u6536\u5E02\u65F6\u7684\u8EAB\u5BB6\u51CF\u53BB\u7B2C\u4E00\u5929\u65E9\u4E0A\u644A\u4F4D\u7684\u4EF7\u503C\u3002"],examplesTitle:"\u53EF\u4EE5\u8FD9\u6837\u8BF4",examples:["3 \u7F50\u67D3\u6599\u6362 2 \u6346\u7F8A\u6BDB","\u4F60\u7684\u7425\u73C0\u591A\u5C11\u94B1\uFF1F","\u739B\u5854\uFF0C\u4F60\u7F3A\u4EC0\u4E48\uFF1F","\u6709\u4EC0\u4E48\u6D88\u606F\uFF1F","\u5148\u7ED9\u6211 2 \u952D\u94C1\uFF0C\u7B2C 4 \u5929\u4ED8\u4F60 15 \u6587","\u6210\u4EA4"],ticketTitle:"\u5F00\u8D26",daysLabel:"\u96C6\u5E02\u5929\u6570",seedLabel:"\u79CD\u5B50",seedPh:"\u968F\u673A",start:"\u6446\u5F00\u4F60\u7684\u644A\u4F4D",continue:"\u7EE7\u7EED\u4E0A\u6B21\u7684\u5B58\u6863",watch:"\u770B\u5546\u4EBA\u4EEC\u81EA\u5DF1\u4EA4\u6613",ticketFine:"\u968F\u65F6\u53EF\u4EE5\u5728\u53F3\u4E0A\u89D2\u5207\u6362\u8BED\u8A00\u3002\u8D26\u76EE\u548C\u5361\u7247\u4F1A\u7ACB\u523B\u6362\u6210\u65B0\u8BED\u8A00\uFF1B\u6D41\u6C34\u8D26\u91CC\u5DF2\u7ECF\u5199\u4E0B\u7684\u8BB0\u5F55\u4FDD\u6301\u539F\u6765\u7684\u8BED\u8A00\u3002",boardHead:"\u884C\u60C5\u724C",boardGood:"\u8D27\u7269",boardPrice:"\u4EF7\u683C",boardSince:"\u8F83\u7B2C 1 \u5929",todayHead:"\u4ECA\u65E5",recapHead:"\u6628\u5929\u4EE5\u6765",heardHead:"\u4F60\u542C\u5230\u7684\u4F20\u95FB",heardFrom:"\u542C\u8BF4",heardDockhand:"\u7801\u5934\u5DE5\u4EBA",heardNone:"\u8FD8\u6CA1\u6709\u3002\u56DB\u5904\u95EE\u95EE\uFF1A\u6709\u4EC0\u4E48\u6D88\u606F\uFF1F",quayHead:"\u7801\u5934\u4E0A",quayNone:"\u8FD8\u6CA1\u6709\u4EBA\u6210\u4EA4\u3002",logDay:e=>`\u7B2C${e}\u5929`,stallsLabel:"\u7801\u5934\u4E0A\u7684\u5546\u4EBA",hasOffer:"\u6709\u4E00\u7B14\u4E70\u5356\u8981\u7ED9\u4F60",mood:{bad:"\u4E0D\u4FE1\u4EFB\u4F60",cold:"\u5BF9\u4F60\u51B7\u6DE1",good:"\u53CB\u597D",neutral:"\u4E00\u822C"},stockHead:"\u644A\u4E0A\u7684\u8D27",stockNone:"\u644A\u4E0A\u4EC0\u4E48\u4E5F\u6CA1\u6709",coinWord:"\u6587",notYet:e=>`\u4F60\u8FD8\u6CA1\u548C${e}\u8BF4\u8FC7\u8BDD\u3002\u6253\u4E2A\u62DB\u547C\uFF0C\u6216\u8005\u5F00\u4E2A\u4EF7\u3002`,convoLabel:e=>`\u548C${e}\u7684\u5BF9\u8BDD`,billHead:"\u684C\u4E0A\u7684\u4E70\u5356",billFrom:e=>`\u6765\u81EA${e}`,billGive:"\u4F60\u4ED8\u51FA",billGet:"\u4F60\u6536\u5230",billNothing:"\u65E0",billLater:e=>`\u7B2C${e}\u5929`,billYouDeliver:"\u4F60\u4EA4\u4ED8",billTheyDeliver:"\u5BF9\u65B9\u4EA4\u4ED8",billWorth:"\u6309\u4F60\u7684\u8D26\u672C\uFF0C\u8EAB\u5BB6\u53D8\u5316",billCoin:"\u6587",accept:"\u63A5\u53D7",decline:"\u62D2\u7EDD",counterHint:"\u6216\u5728\u4E0B\u9762\u6253\u5B57\u8FD8\u4EF7",sayLabel:"\u4F60\u8BF4\u7684\u8BDD",sayPh:"\u8BF4\u70B9\u4EC0\u4E48\uFF0C\u6BD4\u5982\uFF1A10 \u6587\u4E70 2 \u6346\u7F8A\u6BDB",send:"\u8BF4\u51FA\u53E3",voiceLabel:"\u5546\u4EBA\u7531\u8C01\u6765\u6F14",voiceLocal:"\u5185\u7F6E\u5546\u4EBA",voiceMock:"\u79BB\u7EBF\u6A21\u578B\u66FF\u8EAB",chipNeeds:"\u4F60\u7F3A\u4EC0\u4E48\uFF1F",chipNews:"\u6709\u4EC0\u4E48\u6D88\u606F\uFF1F",chipPrice:e=>`${e}\u591A\u5C11\u94B1\uFF1F`,chipBid:e=>`\u6211\u7684${e}\u4F60\u51FA\u591A\u5C11\uFF1F`,previewTo:e=>`\uFF08\u5BF9${e}\u8BF4\uFF09`,intent:{offer:e=>`\u51FA\u4EF7\uFF1A${e}`,acceptOn:"\u63A5\u53D7\u684C\u4E0A\u7684\u4E70\u5356",acceptNone:"\u63A5\u53D7\uFF08\u684C\u4E0A\u8FD8\u6CA1\u6709\u4E70\u5356\uFF09",rejectOn:"\u62D2\u7EDD\u684C\u4E0A\u7684\u4E70\u5356",rejectNone:"\u9053\u522B",price:e=>`\u95EE${e}\u7684\u5356\u4EF7`,bid:(e,t,n)=>`\u95EE\u4ED6\u4EEC\u613F\u610F\u51FA\u591A\u5C11\u4E70\u4F60\u7684${n}`,needs:"\u95EE\u4ED6\u4EEC\u7F3A\u4EC0\u4E48",news:"\u6253\u542C\u6D88\u606F",hello:"\u6253\u4E2A\u62DB\u547C",unknown:"\u8FD8\u770B\u4E0D\u61C2\u8FD9\u53E5\u8BDD"},youGive:e=>`\u4F60\u4ED8\u51FA${e}`,youGet:e=>`\u4F60\u5F97\u5230${e}`,youDeliver:(e,t)=>`\u7B2C${t}\u5929\u4F60\u4EA4\u4ED8${e}`,theyDeliver:(e,t)=>`\u7B2C${t}\u5929\u5BF9\u65B9\u4EA4\u4ED8${e}`,partsJoin:"\uFF0C",pickStall:"\u5148\u9009\u4E00\u4E2A\u644A\u4F4D\u3002",unreachable:e=>`\u8FDE\u4E0D\u4E0A\u6A21\u578B\uFF08${e}\uFF09\uFF0C\u7531\u5185\u7F6E\u5546\u4EBA\u4EE3\u4E3A\u56DE\u7B54\u3002`,youHead:"\u4F60\u7684\u644A\u4F4D",purse:"\u94B1\u888B",goodsGood:"\u8D27\u7269",goodsHave:"\u73B0\u6709",goodsNeed:"\u8BA2\u5355\u8981",contractHead:"\u4F60\u7684\u8BA2\u5355",orderNo:e=>`\u8BA2\u5355\u7B2C ${e} \u53F7`,orderFor:e=>`\u8BA2\u8D27\u4EBA\uFF1A${e}`,orderPays:e=>`\u6536\u5E02\u65F6\u8D27\u9F50\uFF0C\u4ED8 ${e} \u6587\u3002`,onQuay:e=>`\u7801\u5934\u4E0A\u6709\uFF1A${e}`,nobodyHas:"\u644A\u4F4D\u4E0A\u8C01\u90FD\u6CA1\u6709",filled:"\u5DF2\u51D1\u9F50\u3002\u6536\u5E02\u524D\u522B\u628A\u8FD9\u4E9B\u8D27\u5356\u6389\u3002",notFilled:"\u8FD8\u6CA1\u51D1\u9F50\u3002",stampFilled:"\u5DF2\u9F50",stampOpen:"\u672A\u9F50",promisesHead:"\u7EA6\u5B9A",promisesNone:"\u6CA1\u6709\u3002\u4E00\u7B14\u4E70\u5356\u53EF\u4EE5\u7EA6\u5B9A\u4EE5\u540E\u67D0\u5929\u518D\u4EA4\u8D27\u3002",youOwe:(e,t)=>`\u4F60\u6B20${e}${t}`,owesYou:(e,t)=>`${e}\u6B20\u4F60${t}`,promiseDue:e=>`\u7B2C${e}\u5929`,promiseStatus:{open:"\u672A\u5230\u671F",kept:"\u5DF2\u5B88\u7EA6",broken:"\u5DF2\u8FDD\u7EA6"},keepIt:"\u5B88\u7EA6",standing:"\u8981\u662F\u73B0\u5728\u6536\u5E02",profitWord:"\u76C8\u5229",endDay:"\u7ED3\u675F\u8FD9\u4E00\u5929",closeMarket:"\u6536\u5E02",resultLabel:"\u672B\u9875 \xB7 \u6536\u5E02",headFirst:"\u4F60\u5728\u7801\u5934\u4E0A\u62D4\u5F97\u5934\u7B79\u3002",headPlace:e=>`\u4F60\u6392\u5728\u7B2C${["\u4E00","\u4E8C","\u4E09","\u56DB","\u4E94"][e]??e+1}\u540D\u3002`,headWatch:"\u5546\u4EBA\u4EEC\u81EA\u5DF1\u505A\u5B8C\u4E86\u4E70\u5356\u3002",colRank:"\u540D\u6B21",colMerchant:"\u5546\u4EBA",colProfit:"\u76C8\u5229",colContract:"\u8BA2\u5355",contractFilled:e=>`\u5DF2\u5B8C\u6210\uFF08${e}\uFF09`,contractMissed:"\u672A\u5B8C\u6210",summary:(e,t,n)=>`\u5171\u6210\u4EA4 ${e} \u7B14\uFF0C\u8FDD\u7EA6 ${t} \u6B21${n===null?"":`\uFF0C\u4F60\u542C\u5230\u7684\u5047\u4F20\u95FB\u6709 ${n} \u6761`}\u3002`,again:"\u518D\u73A9\u4E00\u5C40",sameSeed:"\u540C\u4E00\u4E2A\u96C6\u5E02\u518D\u6765\u4E00\u6B21",dealsHead:"\u4F60\u7684\u4E70\u5356",colDay:"\u65E5",colWith:"\u5BF9\u8C61",colDeal:"\u5185\u5BB9",colAtClose:"\u6309\u6536\u5E02\u4EF7",gave:e=>`\u4ED8\u51FA${e}`,got:e=>`\u5F97\u5230${e}`,owed:(e,t)=>`\u7B2C${t}\u5929\u4EA4\u4ED8${e}`,dealJoin:"\uFF1B",noDeals:"\u8FD9\u4E00\u573A\u96C6\u5E02\u4F60\u6CA1\u6709\u505A\u6210\u4EFB\u4F55\u4E70\u5356\u3002",dealsNote:"\u6309\u6536\u5E02\u4EF7\u8BA1\u7B97\u3002\u4E00\u7B14\u4E70\u5356\u5728\u8D26\u9762\u4E0A\u4E8F\u4E86\uFF0C\u53EA\u8981\u5E2E\u4F60\u51D1\u9F50\u4E86\u8BA2\u5355\uFF0C\u4E5F\u53EF\u80FD\u662F\u503C\u5F97\u7684\u3002"};function Ve(e){return typeof e=="string"?S(e):typeof e=="function"?((...t)=>S(String(e(...t)))):Array.isArray(e)?e.map(Ve):e&&typeof e=="object"?Object.fromEntries(Object.entries(e).map(([t,n])=>[t,Ve(n)])):e}var Oo={en:Lo,zh:Ve(To)},Ze="en";function Je(e){Ze=e}function Qe(){return Ze}function $(){return Oo[Ze]}var Kt="saltmarket.save.v1",Ut="saltmarket.lang",p={state:null,screen:"setup",stall:null,voice:"local",busy:!1,seen:0,recap:[],providers:[],drawn:{stall:null,lines:0}},g=e=>document.getElementById(e);function f(e){return e.replace(/[&<>"']/g,t=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[t])}var k=()=>Qe(),Eo=e=>e==="zh"?"zh-CN":"en",Xe=e=>`<span lang="${he(e)?"zh-CN":"en"}">${f(e)}</span>`,Vt=e=>e.split(" ")[0];function No(){let e=new URLSearchParams(location.search).get("lang");if(e==="en"||e==="zh")return e;try{let t=localStorage.getItem(Ut);if(t==="en"||t==="zh")return t}catch{}return navigator.language?.toLowerCase().startsWith("zh")?"zh":"en"}function Zt(){let e=$(),t=k();document.documentElement.lang=Eo(t),document.body.dataset.lang=t,document.title=$().docTitle;for(let n of document.querySelectorAll("[data-t]"))n.textContent=String(e[n.dataset.t]??"");for(let n of document.querySelectorAll("[data-t-ph]"))n.setAttribute("placeholder",String(e[n.dataset.tPh]??""));for(let n of document.querySelectorAll("[data-t-aria]"))n.setAttribute("aria-label",String(e[n.dataset.tAria]??""));for(let n of document.querySelectorAll(".lang button"))n.setAttribute("aria-pressed",String(n.dataset.lang===t));g("rules").innerHTML=$().rules.map(n=>`<li>${f(n)}</li>`).join(""),g("examples").innerHTML=$().examples.map(n=>`<li><code>${f(n)}</code></li>`).join(""),on()}function Ho(e){if(e!==Qe()){Je(e);try{localStorage.setItem(Ut,e)}catch{}p.state&&(p.state.lang=e),Zt(),p.screen==="game"?pe():p.screen==="result"?tt():Jt()}}function et(e){p.screen=e,g("setup").classList.toggle("hidden",e!=="setup"),g("game").classList.toggle("hidden",e!=="game"),g("result").classList.toggle("hidden",e!=="result"),g("gauge").classList.toggle("hidden",e==="setup")}function Jt(){et("setup"),g("dayline").textContent="";let e=nn();g("continue").classList.toggle("hidden",!e||e.over)}function Ne(e={}){let t=e.seed?.trim()?e.seed.trim():String(Math.floor(Math.random()*1e9)),n=Ht({seed:t,days:e.days??8,noHuman:e.watch,rivals:e.watch?4:3,lang:k()});return e.watch?(At(n),p.state=n,tt(),n):(Qt(n),n)}function Qt(e){p.state=e,e.lang=k(),p.stall=p.stall&&e.merchants.some(t=>t.id===p.stall)?p.stall:ne(e)[0]?.id??null,p.seen=e.log.length,p.recap=[],p.drawn={stall:null,lines:0},et("game"),pe()}function pe(){let e=p.state;e&&(nt(),Xt(e),Ao(e),Ro(e),jo(e),Po(e),Fo(e),Uo(e),en())}function Xt(e){let t=$();g("dayline").textContent=e.over?t.closed:t.dayOf(e.day,e.days);let n=[];for(let r=1;r<=e.days;r++){let i=e.over||r<e.day?"past":r===e.day?"now":"";n.push(`<li class="${i}" title="${f(t.dayCell(r))}"><span>${r}</span></li>`)}g("daygauge").innerHTML=n.join("");let o=e.over?0:e.talksLeft;g("pips").innerHTML=Array.from({length:e.talkPerDay},(r,i)=>`<i class="${i<o?"on":""}"></i>`).join(""),g("talkfig").textContent=e.over?"":`${o}/${e.talkPerDay}`}function Io(e){let t=Math.round(e*10)/10;return t>0?`+${t}`:t<0?ye(t):""}function Ao(e){let t=$(),n=y.map(o=>{let r=e.prices[o]-e.openingPrices[o],i=r>.4?"up":r<-.4?"down":"";return`<tr><th scope="row">${f(R(o,k()))}</th><td class="num">${K(e.prices[o])}</td><td class="num chg ${i}">${Io(r)}</td></tr>`});g("prices").innerHTML=`<thead><tr><th scope="col">${f(t.boardGood)}</th><th scope="col" class="num">${f(t.boardPrice)}</th><th scope="col" class="num">${f(t.boardSince)}</th></tr></thead><tbody>${n.join("")}</tbody>`}function Ro(e){let t=$(),n=e.events.find(s=>s.day===e.day);g("event").textContent=n?Z(n.kind,yt(n),k()):"";let o=p.recap.filter(s=>!s.private);g("recap").innerHTML=o.length?`<h3 class="label">${f(t.recapHead)}</h3><ul>${o.map(s=>`<li class="k-${s.kind}">${Xe(s.text)}</li>`).join("")}</ul>`:"";let r=e.merchants.find(s=>s.id===h),i=r?e.rumors.filter(s=>r.heard.includes(s.id)&&s.day>e.day):[];g("rumors").innerHTML=i.length?i.map(s=>`<li><span class="src label">${f(Bo(e,s.id,s.text))}</span> ${f(J(s.kind,s.goods,s.day,k()))}</li>`).join(""):`<li class="muted">${f(t.heardNone)}</li>`}function Bo(e,t,n){let o=$(),r=e.log.find(s=>s.kind==="rumor"&&(s.rumor===t||!s.rumor&&s.text.includes(n)));if(!r)return o.heardFrom;let i=r.who?.find(s=>s!==h);return i&&e.merchants.some(s=>s.id===i)?v(e,i).name:o.heardDockhand}function jo(e){let t=$(),n=e.log.filter(o=>!o.private&&o.kind!=="day").slice(-14);g("market").innerHTML=n.length?n.map(o=>`<li class="k-${o.kind}"><span class="d">${f(t.logDay(o.day))}</span> ${Xe(o.text)}</li>`).join(""):`<li class="muted">${f(t.quayNone)}</li>`}function Do(e){let t=$().mood,n=e.mood[h]??0,o=e.trust[h]??.7;return o<.3?{label:t.bad,tone:"bad"}:n<=-.4?{label:t.cold,tone:"bad"}:n>=.2||o>=.85?{label:t.good,tone:"good"}:{label:t.neutral,tone:""}}function Po(e){let t=$();g("stalls").innerHTML=ne(e).map(n=>{let o=Do(n),r=n.id===p.stall,i=e.pending[n.id]?`<span class="seal" title="${f(t.hasOffer)}" aria-hidden="true"></span><span class="sr-only">${f(t.hasOffer)}</span>`:"";return`<button type="button" class="stall${r?" on":""}" data-stall="${n.id}" aria-pressed="${r}"><b class="who">${f(n.name)}</b>${i}<small class="${o.tone}">${f(o.label)}</small></button>`}).join("")}function Co(e,t){return e.log.filter(n=>n.private&&n.who?.includes(t))}function Wo(e){return e.kind==="say"&&e.who?.[0]===h&&e.who.length>1||Ie(e.text)!==null}function Fo(e){let t=p.stall;if(!t)return;let n=$(),o=v(e,t);g("stallhead").innerHTML=`<div class="who-block"><h2>${f(o.name)}</h2><p class="blurb">${f(ut(o.name,o.blurb,k()))}</p></div><div class="theirs"><span class="label">${f(n.stockHead)}</span>${zo(o)}</div>`;let r=Co(e,t),i=g("convo");i.setAttribute("aria-label",n.convoLabel(o.name)),i.innerHTML=r.length?r.map(s=>{let a=Wo(s),c=a?Ie(s.text)??s.text:s.text;return`<li class="${a?"me":"them"} k-${s.kind}"><span class="d">${f(n.logDay(s.day))}</span><span class="line">${Xe(c)}</span></li>`}).join(""):`<li class="muted">${f(n.notYet(Vt(o.name)))}</li>`,qo(i,t,r.length),_o(e,o),Ko(e,o),g("talks").textContent=e.over?"":n.talksLeft(e.talksLeft,e.talkPerDay)}function qo(e,t,n){let o=p.drawn.stall===t&&n>p.drawn.lines;if(p.drawn={stall:t,lines:n},e.scrollHeight>e.clientHeight+1)e.scrollTop=e.scrollHeight;else if(o){let r=e.lastElementChild;r&&typeof r.scrollIntoView=="function"&&r.scrollIntoView({block:"nearest"})}}function zo(e){let t=$(),n=y.filter(r=>e.goods[r]>0).map(r=>`<tr><th scope="row">${f(R(r,k()))}</th><td class="num">${e.goods[r]}</td></tr>`);return`<table class="ledger stock"><tbody>${n.length?n.join(""):`<tr><td colspan="2" class="muted">${f(t.stockNone)}</td></tr>`}<tr class="coin"><th scope="row">${f(t.coinWord)}</th><td class="num">${Math.floor(e.coin)}</td></tr></tbody></table>`}function zt(e){let t=$(),n=[];if(e){for(let o of y)e[o]&&n.push(`<tr><td class="num">${e[o]}</td><td>${f(k()==="zh"?`${He(o,"zh")}${R(o,"zh")}`:R(o,"en"))}</td></tr>`);e.coin&&n.push(`<tr><td class="num">${K(e.coin)}</td><td>${f(t.billCoin)}</td></tr>`)}return n.join("")}function _t(e,t,n,o){let r=$(),i=zt(t),s=o!==void 0?zt(n):"",a=(i||(s?"":`<tr><td class="num">\u2014</td><td class="muted">${f(r.billNothing)}</td></tr>`))+(s?`<tr class="later"><th colspan="2" scope="rowgroup">${f(r.billLater(o))}</th></tr>${s}`:"");return`<div class="bill-side"><h3 class="label">${f(e)}</h3><table class="ledger"><tbody>${a}</tbody></table></div>`}function _o(e,t){let n=e.pending[t.id],o=g("table");if(!n||e.over){o.classList.add("hidden"),o.innerHTML="";return}let r=$(),i=v(e,h),s=j(e,i,n),a=H(e,n,k()),c=a.length?`<p class="bill-problem bad">${f(a.join(k()==="zh"?"\uFF1B":"; "))}</p>`:`<p class="bill-worth"><span>${f(r.billWorth)}</span><span class="num figure ${s<0?"bad":""}">${s<0?"\u2212":"+"}${Math.abs(s).toFixed(1)} ${f(r.billCoin)}</span></p>`;o.classList.remove("hidden"),o.setAttribute("aria-label",`${r.billHead}: ${Yo(n)}`),o.innerHTML=`<div class="bill-head"><span class="label">${f(r.billHead)}</span><span class="bill-from">${f(r.billFrom(t.name))}</span></div>
+    <div class="bill-cols">${_t(r.billGive,n.get,n.later?.get,n.later?.due)}${_t(r.billGet,n.give,n.later?.give,n.later?.due)}</div>
+    ${c}
+    <div class="bill-actions"><button type="button" id="accept" class="primary" ${a.length?"disabled":""}>${f(r.accept)}</button><button type="button" id="decline">${f(r.decline)}</button><span class="hint">${f(r.counterHint)}</span></div>`}function Yo(e){let t=$(),n=r=>D(r,k()),o=[];return w(e.get)||o.push(t.youGive(n(e.get))),w(e.give)||o.push(t.youGet(n(e.give))),e.later&&(w(e.later.get)||o.push(t.youDeliver(n(e.later.get),e.later.due)),w(e.later.give)||o.push(t.theyDeliver(n(e.later.give),e.later.due))),o.join(t.partsJoin)}function Ko(e,t){if(e.over){g("chips").innerHTML="";return}let n=$(),o=v(e,h),r=[n.chipNeeds,n.chipNews],i=y.find(a=>(o.contract.needs[a]??0)>o.goods[a]&&t.goods[a]>0);i&&r.push(n.chipPrice(V(i,Math.min(t.goods[i],(o.contract.needs[i]??0)-o.goods[i]),k())));let s=y.find(a=>o.goods[a]>(o.contract.needs[a]??0));s&&r.push(n.chipBid(R(s,k()))),g("chips").innerHTML=r.map(a=>`<button type="button" class="chip" data-say="${f(a)}">${f(a)}</button>`).join("")}function Uo(e){let t=e.merchants.find(l=>l.id===h);if(!t)return;let n=$(),o=k();g("purse").innerHTML=`<span class="label">${f(n.purse)}</span><span class="figure">${K(t.coin)}</span><span class="unit">${f(n.coinWord)}</span>`,g("mygoods").innerHTML=`<thead><tr><th scope="col">${f(n.goodsGood)}</th><th scope="col" class="num">${f(n.goodsHave)}</th><th scope="col"><span class="sr-only">${f(n.goodsGood)}</span></th><th scope="col" class="num">${f(n.goodsNeed)}</th></tr></thead><tbody>`+y.map(l=>{let d=t.goods[l],u=t.contract.needs[l]??0;return`<tr class="${d?"":"nil"}${u?" wanted":""}"><th scope="row">${f(R(l,o))}</th><td class="num">${d}</td><td class="unit">${f(He(l,o,d))}</td><td class="num">${u||""}</td></tr>`}).join("")+"</tbody>";let i=Object.entries(t.contract.needs).map(([l,d])=>{let u=Math.min(t.goods[l],d),m=d-t.goods[l],b=m>0?ne(e).filter(E=>E.goods[l]>0).map(E=>`${Vt(E.name)} ${E.goods[l]}`):[],M=m>0?`<tr class="where"><td colspan="3">${f(b.length?n.onQuay(b.join(o==="zh"?"\uFF0C":", ")):n.nobodyHas)}</td></tr>`:"";return`<tr><th scope="row">${f(R(l,o))}</th><td class="num">${t.goods[l]}/${d}</td><td class="meter"><span class="bar"><span style="width:${u/d*100}%"></span></span></td></tr>${M}`}),s=De(e,t);g("contract").innerHTML=`<div class="slip-head"><span class="label">${f(n.orderNo(e.seed%900+100))}</span><span class="stamp${s.contractMet?"":" open"}">${f(s.contractMet?n.stampFilled:n.stampOpen)}</span></div>
+    <p class="slip-for">${f(n.orderFor(ft(t.contract.client,o)))}</p>
+    <p class="slip-pays">${f(n.orderPays(t.contract.reward))}</p>
+    <table class="ledger needs"><tbody>${i.join("")}</tbody></table>
+    <p class="${s.contractMet?"done":"muted"}">${f(s.contractMet?n.filled:n.notFilled)}</p>`;let a=e.promises.filter(l=>l.from===h||l.to===h);g("promises").innerHTML=a.length?a.map(l=>{let d=v(e,l.from===h?l.to:l.from).name,u=D(l.bundle,o),m=l.from===h?n.youOwe(d,u):n.owesYou(d,u),b=l.status==="open"&&l.from===h?`<label class="keep"><input type="checkbox" data-promise="${l.id}" ${(e.breaking??[]).includes(l.id)?"":"checked"} /> ${f(n.keepIt)}</label>`:"";return`<li class="p-${l.status}"><span class="what">${f(m)}</span><span class="due">${f(n.promiseDue(l.due))}${l.status==="open"?"":` \xB7 ${f(n.promiseStatus[l.status])}`}</span>${b}</li>`}).join(""):`<li class="muted">${f(n.promisesNone)}</li>`,g("standing").innerHTML=`<span class="label">${f(n.standing)}</span><span class="figure${s.profit<0?" bad":""}">${_(s.profit)}</span><span class="unit">${f(n.profitWord)}</span>`;let c=g("endday");c.textContent=e.day>=e.days?n.closeMarket:n.endDay,c.disabled=e.over||p.busy}function Vo(e,t){let n=$(),o=k(),r=i=>D(i,o);switch(t.kind){case"offer":{let i=[];return w(t.give)||i.push(n.youGive(r(t.give))),w(t.get)||i.push(n.youGet(r(t.get))),t.later?.give&&!w(t.later.give)&&i.push(n.youDeliver(r(t.later.give),t.later.due)),t.later?.get&&!w(t.later.get)&&i.push(n.theyDeliver(r(t.later.get),t.later.due)),n.intent.offer(i.join(n.partsJoin))}case"accept":return e.pending[p.stall??""]?n.intent.acceptOn:n.intent.acceptNone;case"reject":return e.pending[p.stall??""]?n.intent.rejectOn:n.intent.rejectNone;case"price":return n.intent.price(V(t.good,t.qty,o));case"bid":return n.intent.bid(t.qty,R(t.good,o),V(t.good,t.qty,o));case"needs":return n.intent.needs;case"news":return n.intent.news;case"hello":return n.intent.hello;default:return n.intent.unknown}}function en(){g("preview").classList.remove("warn");let e=p.state,t=g("input").value;if(!e||!t.trim()){g("preview").textContent="";return}let n=Ue(e,t,p.stall??void 0),o=n.to&&n.to!==p.stall?$().previewTo(v(e,n.to).name):"";g("preview").textContent=`${Vo(e,n.intent)}${o}`}async function ge(e){let t=p.state;if(!t||p.busy||!e.trim())return;let n=e.trim().slice(0,300);t.lang=k();let o=null;if(p.voice!=="local"){p.busy=!0;try{let r=await fetch("/api/talk",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({state:t,text:n,stall:p.stall,provider:p.voice,lang:k()})}),i=await r.json();if(!r.ok)throw new Error(i.error??r.statusText);p.state=i.state,i.reply?.to&&(p.stall=i.reply.to),i.reply?.spent?tn(p.state,n,i.reply.to??p.stall):o=i.reply?.say??null}catch(r){o=Yt(t,n),o=`${$().unreachable(r.message)}${o?` ${o}`:""}`}finally{p.busy=!1}}else o=Yt(t,n);o||(g("input").value=""),pe(),o&&Zo(o)}function Yt(e,t){let n=Ue(e,t,p.stall??void 0),o=n.to??p.stall;if(!o)return $().pickStall;p.stall=o;let r=Rt(e,o,n.intent);return r.spent&&tn(e,t,o),r.spent?null:r.say}function tn(e,t,n){if(!n)return;let o={day:e.day,kind:"say",text:T(x(e)).you(t),who:[h,n],private:!0},r=e.log.length-1;for(;r>=0&&!(e.log[r].private&&e.log[r].who?.includes(n)&&e.log[r].kind==="say");)r--;r>=0?e.log.splice(r,0,o):e.log.push(o)}function Zo(e){e&&(g("preview").textContent=e,g("preview").classList.add("warn"))}function Jo(){ge(k()==="zh"?"\u6210\u4EA4":"deal")}function Qo(){ge(k()==="zh"?"\u4E0D\u8981":"no thanks")}function Xo(){let e=p.state;if(!e||e.over||p.busy)return;e.lang=k();let t=e.log.length;We(e),p.recap=e.log.slice(t).filter(n=>["trade","promise","broken"].includes(n.kind)),p.seen=e.log.length,e.over?tt():pe()}function tt(){let e=p.state;nt(),et("result");let t=$(),n=k();Xt(e);let o=g("result"),r=Pe(e),i=r.map((u,m)=>{let b=v(e,u.id),M=Object.entries(b.contract.needs).map(([E,L])=>V(E,L,n)).join(n==="zh"?"\u3001":", ");return`<tr class="${u.id===h?"me":""}"><td class="num">${m+1}</td><th scope="row"><b>${f(W(e,u.id,n))}</b><small>${f(b.id===h?"":gt(b.personality,n))}</small></th><td class="num${u.profit<0?" bad":""}">${_(u.profit)}</td><td>${f(u.contractMet?t.contractFilled(u.reward):t.contractMissed)}<small>${f(M)}</small></td></tr>`}).join(""),s=r.findIndex(u=>u.id===h),a=s<0?t.headWatch:s===0?t.headFirst:t.headPlace(s),c=e.promises.filter(u=>u.status==="broken"),l=e.rumors.filter(u=>!u.truth&&e.merchants.some(m=>m.id===h&&m.heard.includes(u.id))),d=s<0?"":er(e);o.innerHTML=`<div class="sheet final">
+    <p class="label">${f(t.resultLabel)}</p>
+    <h2 class="title">${f(a)}</h2>
+    <table class="ledger standings"><thead><tr><th scope="col" class="num">${f(t.colRank)}</th><th scope="col">${f(t.colMerchant)}</th><th scope="col" class="num">${f(t.colProfit)}</th><th scope="col">${f(t.colContract)}</th></tr></thead><tbody>${i}</tbody></table>
+    <p class="muted">${f(t.summary(e.trades.length,c.length,s>=0?l.length:null))}</p>
+    ${d}
+    <div class="actions"><button type="button" id="again" class="primary">${f(t.again)}</button><button type="button" id="sameseed">${f(t.sameSeed)}</button></div></div>`}function er(e){let t=$(),n=k(),o=a=>D(a,n),r=e.trades.filter(a=>a.offer.from===h||a.offer.to===h).map(a=>{let c=a.offer.from===h?a.offer:Q(a.offer),l=le(e,c.get)+le(e,c.later?.get)-le(e,c.give)-le(e,c.later?.give),d=[];return w(c.give)||d.push(t.gave(o(c.give))),w(c.get)||d.push(t.got(o(c.get))),c.later&&!w(c.later.give)&&d.push(t.owed(o(c.later.give),c.later.due)),c.later&&!w(c.later.get)&&d.push(t.owed(o(c.later.get),c.later.due)),{day:a.day,who:v(e,c.to).name,what:d.join(t.dealJoin),value:l}});if(!r.length)return`<p class="muted">${f(t.noDeals)}</p>`;let i=r.reduce((a,c)=>c.value>a.value?c:a),s=r.map(a=>`<tr class="${a===i&&a.value>0?"best":""}"><td class="num">${a.day}</td><td>${f(a.who)}</td><td>${f(a.what)}</td><td class="num ${a.value<0?"loss":""}">${_(Math.round(a.value*10)/10)}</td></tr>`).join("");return`<h3 class="label">${f(t.dealsHead)}</h3><table class="ledger deals"><thead><tr><th scope="col" class="num">${f(t.colDay)}</th><th scope="col">${f(t.colWith)}</th><th scope="col">${f(t.colDeal)}</th><th scope="col" class="num">${f(t.colAtClose)}</th></tr></thead><tbody>${s}</tbody></table>
+    <p class="muted">${f(t.dealsNote)}</p>`}function nt(){try{p.state&&p.state.merchants.some(e=>e.id===h)&&localStorage.setItem(Kt,JSON.stringify(p.state))}catch{}}function nn(){try{let e=localStorage.getItem(Kt);return e?JSON.parse(e):null}catch{return null}}function on(){if(!p.providers.length)return;let e=$(),t=g("voice"),n=[["local",e.voiceLocal],...p.providers.filter(o=>o!=="mock").map(o=>[o,o==="anthropic"?"Anthropic":o==="openai"?"OpenAI-compatible":o]),["mock",e.voiceMock]];t.innerHTML=n.map(([o,r])=>`<option value="${f(o)}">${f(r)}</option>`).join(""),t.value=p.voice}function tr(){for(let e of document.querySelectorAll(".lang button"))e.addEventListener("click",()=>Ho(U(e.dataset.lang)));g("start").addEventListener("click",()=>Ne({seed:g("seed").value,days:Number(g("days").value)})),g("watch").addEventListener("click",()=>Ne({seed:g("seed").value,days:Number(g("days").value),watch:!0})),g("continue").addEventListener("click",()=>{let e=nn();e&&Qt(e)}),g("stalls").addEventListener("click",e=>{let t=e.target.closest("[data-stall]");t&&(p.stall=t.dataset.stall,pe(),g("input").focus())}),g("chips").addEventListener("click",e=>{let t=e.target.closest("[data-say]");t&&ge(t.dataset.say)}),g("table").addEventListener("click",e=>{let t=e.target.id;t==="accept"&&Jo(),t==="decline"&&Qo()}),g("send").addEventListener("click",()=>{ge(g("input").value)}),g("input").addEventListener("input",en),g("input").addEventListener("keydown",e=>{e.key==="Enter"&&!e.shiftKey&&!e.isComposing&&(e.preventDefault(),ge(g("input").value))}),g("endday").addEventListener("click",Xo),g("promises").addEventListener("change",e=>{let t=e.target,n=t.dataset.promise,o=p.state;if(!n||!o)return;let r=new Set(o.breaking??[]);t.checked?r.delete(n):r.add(n),o.breaking=[...r],nt()}),g("voice").addEventListener("change",()=>p.voice=g("voice").value),g("result").addEventListener("click",e=>{let t=e.target.id;t==="again"&&Ne({days:p.state?.days}),t==="sameseed"&&p.state&&Ne({seed:String(p.state.seed),days:p.state.days})}),location.protocol.startsWith("http")&&fetch("/api/health").then(e=>e.ok?e.json():null).then(e=>{e?.providers&&(p.providers=e.providers,on(),g("voicebox").classList.remove("hidden"))}).catch(()=>{})}function hi(){return p}typeof document<"u"&&document.getElementById("start")&&(Je(No()),Zt(),tr(),Jt());export{Jo as acceptPending,Zt as applyStrings,Qo as declinePending,Vo as describeIntent,Xo as finishDay,hi as getUI,No as initialLang,er as ledgerHtml,Do as moodOf,pe as render,ge as say,Jt as setupScreen,tt as showResult,Ne as start,Ho as switchLang,en as updatePreview,tr as wire,Yo as youView};
+
+
+</script>
+  </body>
+</html>
